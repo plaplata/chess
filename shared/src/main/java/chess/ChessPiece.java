@@ -46,6 +46,20 @@ public class ChessPiece {
         return type;
     }
 
+    //Pawn promotion helper method
+    private void addPawnMoveIfValid(ChessBoard board, ChessPosition start, ChessPosition end, int promotionRow, Collection<ChessMove> moves) {
+        if (end.getRow() == promotionRow) {
+            // Promotion moves
+            moves.add(new ChessMove(start, end, PieceType.QUEEN));
+            moves.add(new ChessMove(start, end, PieceType.ROOK));
+            moves.add(new ChessMove(start, end, PieceType.BISHOP));
+            moves.add(new ChessMove(start, end, PieceType.KNIGHT));
+        } else {
+            // Regular move
+            moves.add(new ChessMove(start, end, null));
+        }
+    }
+
     /**
      * Calculates all the positions a chess piece can move to
      * Does not take into account moves that are illegal due to leaving the king in
@@ -204,7 +218,38 @@ public class ChessPiece {
                 }
                 break;
             case PAWN:
-                // Pawn moves
+                //Pawn moves
+                //ternary operator. If the team color is white, set (dir/startrow/promotionrow) to first value, otherwise to the second value
+                int direction = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 1 : -1;
+                int startRow = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 2 : 7;
+                int promotionRow = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 8 : 1;
+
+                // Single move forward
+                ChessPosition oneForward = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn());
+                if (board.getPiece(oneForward) == null) {
+                    addPawnMoveIfValid(board, myPosition, oneForward, promotionRow, moves);
+
+                    // Double move from starting position
+                    if (myPosition.getRow() == startRow) {
+                        ChessPosition twoForward = new ChessPosition(myPosition.getRow() + 2 * direction, myPosition.getColumn());
+                        if (board.getPiece(twoForward) == null) {
+                            moves.add(new ChessMove(myPosition, twoForward, null));
+                        }
+                    }
+                }
+
+                // Diagonal captures
+                int[] captureCols = {myPosition.getColumn() - 1, myPosition.getColumn() + 1};
+                for (int col : captureCols) {
+                    if (col >= 1 && col <= 8) {
+                        ChessPosition capturePos = new ChessPosition(myPosition.getRow() + direction, col);
+                        ChessPiece target = board.getPiece(capturePos);
+                        if (target != null && target.getTeamColor() != this.getTeamColor()) {
+                            addPawnMoveIfValid(board, myPosition, capturePos, promotionRow, moves);
+                        }
+                        // En Passant logic should go here, later
+                    }
+                }
                 break;
         }
 
