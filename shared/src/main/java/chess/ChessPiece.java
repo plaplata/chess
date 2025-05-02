@@ -60,6 +60,26 @@ public class ChessPiece {
         switch (type) {
             case KING:
                 // King moves
+                int[][] kingDirections = {
+                        {1,0}, {1,1}, {0,1}, {-1,1},  // Up, up-right, right, down-right
+                        {-1,0}, {-1,-1}, {0,-1}, {1,-1} // Down, down-left, left, up-left
+                };
+
+                for (int[] direction : kingDirections) {
+                    int newRow = myPosition.getRow() + direction[0];
+                    int newCol = myPosition.getColumn() + direction[1];
+
+                    // Check if new position is on the board
+                    if (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) {
+                        ChessPosition newPosition = new ChessPosition(newRow, newCol);
+                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+
+                        // Add move if empty or opponent's piece
+                        if (pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()) {
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                        }
+                    }
+                }
                 break;
             case QUEEN:
                 // Queen moves

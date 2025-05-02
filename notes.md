@@ -25,3 +25,6 @@ ChessPosition: @Override: toString, equals, hashCode added
 
 ChessPiece: pieceColor, type. Implementation of bishop moves, switch
 
+---
+King moves added
+
