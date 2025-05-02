@@ -3,7 +3,7 @@ This file is proof of a push
 Phase 0:
 
 I'm told to start by fixing all things necessary to
-pass BisphoMoveTests.
+pass BishopMoveTests.
 
 Implemented code for:
 squares on ChessBoard
@@ -15,4 +15,13 @@ ChessMove: startPosition, endPosition, promotionPiece
 addPiece, getRow, getColumn, getPiece
 
 pieceMoves: Empty ArrayList for now
+
+---
+ChessBoard: getPiece, addPiece altered (-1)
+
+ChessMove: @Override: toString, equals, hashCode added
+
+ChessPosition: @Override: toString, equals, hashCode added
+
+ChessPiece: pieceColor, type. Implementation of bishop moves, switch
 
