@@ -83,7 +83,45 @@ public class ChessPiece {
                 }
                 break;
             case QUEEN:
-                // Queen moves
+                // Queen moves (combination of rook and bishop directions)
+                int[][] queenDirections = {
+                        // Rook directions (up down right left)
+                        {1,0}, {-1,0}, {0,1}, {0,-1},
+                        // Bishop directions (diagonal)
+                        {1,1}, {1,-1}, {-1,1}, {-1,-1}
+                };
+
+                for (int[] direction : queenDirections) {
+                    int row = myPosition.getRow();
+                    int col = myPosition.getColumn();
+
+                    while (true) {
+                        row += direction[0];
+                        col += direction[1];
+
+                        // Check if position is still on the board
+                        if (row < 1 || row > 8 || col < 1 || col > 8) {
+                            break;
+                        }
+
+                        ChessPosition newPosition = new ChessPosition(row, col);
+                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+
+                        // If square is empty, add move
+                        if (pieceAtPosition == null) {
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                        }
+                        // If square has opponent's piece, add move and stop
+                        else if (pieceAtPosition.getTeamColor() != this.getTeamColor()) {
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                            break;
+                        }
+                        // If square has our own piece, stop without adding
+                        else {
+                            break;
+                        }
+                    }
+                }
                 break;
             case BISHOP:
                 // Bishop moves (4 diagonal directions)
