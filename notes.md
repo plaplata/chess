@@ -29,4 +29,6 @@ ChessPiece: pieceColor, type. Implementation of bishop moves, switch
 King moves added
 Rook moves added
 Queen moves added
+Pawn moves added, En Passant logic not implemented, needs game state tracking
+In ChessPiece, added addPawnMoveIfValid helper method for Pawn promotion logic
 
