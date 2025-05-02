@@ -27,4 +27,5 @@ ChessPiece: pieceColor, type. Implementation of bishop moves, switch
 
 ---
 King moves added
+Rook moves added
 

@@ -59,7 +59,8 @@ public class ChessPiece {
 
         switch (type) {
             case KING:
-                // King moves
+                // King moves (8 directions)
+                //direction {vertical, horizontal}
                 int[][] kingDirections = {
                         {1,0}, {1,1}, {0,1}, {-1,1},  // Up, up-right, right, down-right
                         {-1,0}, {-1,-1}, {0,-1}, {1,-1} // Down, down-left, left, up-left
@@ -85,7 +86,7 @@ public class ChessPiece {
                 // Queen moves
                 break;
             case BISHOP:
-                // Bishop moves
+                // Bishop moves (4 diagonal directions)
                 int[][] directions = {{1,1}, {1,-1}, {-1,1}, {-1,-1}}; // All four diagonal directions
 
                 for (int[] direction : directions) {
@@ -124,7 +125,45 @@ public class ChessPiece {
                 // Knight moves
                 break;
             case ROOK:
-                // Rook moves
+                // Rook moves (up, down, right, left)
+                int[][] rookDirections = {
+                        {1, 0},   // Up
+                        {-1, 0},  // Down
+                        {0, 1},   // Right
+                        {0, -1}   // Left
+                };
+
+                for (int[] direction : rookDirections) {
+                    int row = myPosition.getRow();
+                    int col = myPosition.getColumn();
+
+                    while (true) {
+                        row += direction[0];
+                        col += direction[1];
+
+                        // Check if position is still on the board
+                        if (row < 1 || row > 8 || col < 1 || col > 8) {
+                            break;
+                        }
+
+                        ChessPosition newPosition = new ChessPosition(row, col);
+                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+
+                        // If square is empty, add move
+                        if (pieceAtPosition == null) {
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                        }
+                        // If square has opponent's piece, add move and stop
+                        else if (pieceAtPosition.getTeamColor() != this.getTeamColor()) {
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                            break;
+                        }
+                        // If square has our own piece, stop without adding
+                        else {
+                            break;
+                        }
+                    }
+                }
                 break;
             case PAWN:
                 // Pawn moves
