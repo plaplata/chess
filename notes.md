@@ -35,3 +35,6 @@ Knight moves added
 ---
 Added Overrides for equals and hashCode in ChessBoard.java
 ChessBoardTests now passing
+---
+Added Overrides for equals and hashCode in ChessPiece.java
+Now passing all tests!
