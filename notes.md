@@ -32,3 +32,6 @@ Queen moves added
 Pawn moves added, En Passant logic not implemented, needs game state tracking
 In ChessPiece, added addPawnMoveIfValid helper method for Pawn promotion logic
 Knight moves added
+---
+Added Overrides for equals and hashCode in ChessBoard.java
+ChessBoardTests now passing
