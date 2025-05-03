@@ -174,7 +174,29 @@ public class ChessPiece {
                 }
                 break;
             case KNIGHT:
-                // Knight moves
+                // All 8 possible L-shaped knight moves
+                int[][] knightMoves = {
+                        {2, 1}, {2, -1},    // Up-right and up-left
+                        {-2, 1}, {-2, -1},   // Down-right and down-left
+                        {1, 2}, {1, -2},     // Right-up and right-down
+                        {-1, 2}, {-1, -2}    // Left-up and left-down
+                };
+
+                for (int[] move : knightMoves) {
+                    int newRow = myPosition.getRow() + move[0];
+                    int newCol = myPosition.getColumn() + move[1];
+
+                    // Check if new position is on the board
+                    if (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) {
+                        ChessPosition newPosition = new ChessPosition(newRow, newCol);
+                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+
+                        // Add move if square is empty or contains opponent's piece
+                        if (pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()) {
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                        }
+                    }
+                }
                 break;
             case ROOK:
                 // Rook moves (up, down, right, left)

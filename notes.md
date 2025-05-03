@@ -31,4 +31,4 @@ Rook moves added
 Queen moves added
 Pawn moves added, En Passant logic not implemented, needs game state tracking
 In ChessPiece, added addPawnMoveIfValid helper method for Pawn promotion logic
-
+Knight moves added
