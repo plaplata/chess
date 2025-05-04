@@ -104,44 +104,24 @@ public class ChessBoard {
 //        };
 //    }
 
+
+    //right click generated @Override equals, hashCode
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
         ChessBoard that = (ChessBoard) o;
 
-        // Compare each piece position
-        for (int row = 0; row < 8; row++) {
-            for (int col = 0; col < 8; col++) {
-                ChessPiece thisPiece = this.squares[row][col];
-                ChessPiece thatPiece = that.squares[row][col];
-
-                // Handle null cases
-                if (thisPiece == null || thatPiece == null) {
-                    if (thisPiece != thatPiece) return false;
-                    continue;
-                }
-
-                // Compare piece properties
-                if (thisPiece.getTeamColor() != thatPiece.getTeamColor() ||
-                        thisPiece.getPieceType() != thatPiece.getPieceType()) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return Arrays.deepEquals(squares, that.squares);
     }
 
     @Override
     public int hashCode() {
-        int result = 0;
-        for (int row = 0; row < 8; row++) {
-            for (int col = 0; col < 8; col++) {
-                ChessPiece piece = squares[row][col];
-                result = 31 * result + (piece == null ? 0 :
-                        piece.getTeamColor().hashCode() + piece.getPieceType().hashCode());
-            }
-        }
-        return result;
+        return Arrays.deepHashCode(squares);
     }
 }
