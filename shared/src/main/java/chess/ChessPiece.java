@@ -69,173 +69,144 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> moves = new ArrayList<>();
-        PieceType type = this.getPieceType();
+        ChessPiece.PieceType type = this.type;
 
-        switch (type) {
+        switch(type){
             case KING:
-                // King moves (8 directions)
-                //direction {vertical, horizontal}
+                //directions 8
                 int[][] kingDirections = {
-                        {1,0}, {1,1}, {0,1}, {-1,1},  // Up, up-right, right, down-right
-                        {-1,0}, {-1,-1}, {0,-1}, {1,-1} // Down, down-left, left, up-left
+                        {1,-1},{1,0},{1,1},{0,-1},{0,1},{-1,-1},{-1,0},{-1,1}
                 };
+                //For loop
+                for(int[] direction : kingDirections){
+                    //row col
+                    int row = myPosition.getRow() + direction[0];
+                    int col = myPosition.getColumn() + direction[1];
 
-                for (int[] direction : kingDirections) {
-                    int newRow = myPosition.getRow() + direction[0];
-                    int newCol = myPosition.getColumn() + direction[1];
+                    //boundary check
+                    if(row < 1 || row > 8 || col < 1 || col > 8) continue;
 
-                    // Check if new position is on the board
-                    if (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) {
-                        ChessPosition newPosition = new ChessPosition(newRow, newCol);
-                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+                    //newPosition pieceAtPosition
+                    ChessPosition newPosition = new ChessPosition(row,col);
+                    ChessPiece pieceAtPosition = board.getPiece(newPosition);
 
-                        // Add move if empty or opponent's piece
-                        if (pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()) {
-                            moves.add(new ChessMove(myPosition, newPosition, null));
-                        }
+                    //move allowed
+                    if(pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()){
+                        moves.add(new ChessMove(myPosition, newPosition, null));
                     }
                 }
                 break;
             case QUEEN:
-                // Queen moves (combination of rook and bishop directions)
+                //directions 8
                 int[][] queenDirections = {
-                        // Rook directions (up down right left)
-                        {1,0}, {-1,0}, {0,1}, {0,-1},
-                        // Bishop directions (diagonal)
-                        {1,1}, {1,-1}, {-1,1}, {-1,-1}
+                        {1,-1},{1,0},{1,1},{0,-1},{0,1},{-1,-1},{-1,0},{-1,1}
                 };
+                //For loop
+                for(int[] direction : queenDirections){
+                    //row col
+                    int row = myPosition.getRow() + direction[0];
+                    int col = myPosition.getColumn() + direction[1];
 
-                for (int[] direction : queenDirections) {
-                    int row = myPosition.getRow();
-                    int col = myPosition.getColumn();
+                    //while loop(boundary check)
+                    while(row >= 1 && row <= 8 && col >= 1 && col <= 8){
+                        //newPosition pieceAtPosition
+                        ChessPosition newPosition = new ChessPosition(row,col);
+                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+                        //move allowed
+                        if(pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()){
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                        }
+                        //Stop after any piece
+                        if(pieceAtPosition != null) break;
 
-                    while (true) {
+                        //row col - keeps sliding
                         row += direction[0];
                         col += direction[1];
 
-                        // Check if position is still on the board
-                        if (row < 1 || row > 8 || col < 1 || col > 8) {
-                            break;
-                        }
-
-                        ChessPosition newPosition = new ChessPosition(row, col);
-                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
-
-                        // If square is empty, add move
-                        if (pieceAtPosition == null) {
-                            moves.add(new ChessMove(myPosition, newPosition, null));
-                        }
-                        // If square has opponent's piece, add move and stop
-                        else if (pieceAtPosition.getTeamColor() != this.getTeamColor()) {
-                            moves.add(new ChessMove(myPosition, newPosition, null));
-                            break;
-                        }
-                        // If square has our own piece, stop without adding
-                        else {
-                            break;
-                        }
                     }
                 }
                 break;
             case BISHOP:
-                // Bishop moves (4 diagonal directions)
-                int[][] directions = {{1,1}, {1,-1}, {-1,1}, {-1,-1}}; // All four diagonal directions
+                //directions 4 - diagonals
+                int[][] bishopDirections = {
+                        {1,-1},{1,1},{-1,-1},{-1,1}
+                };
+                //For loop
+                for(int[] direction : bishopDirections){
+                    //row col
+                    int row = myPosition.getRow() + direction[0];
+                    int col = myPosition.getColumn() + direction[1];
 
-                for (int[] direction : directions) {
-                    int row = myPosition.getRow();
-                    int col = myPosition.getColumn();
+                    //while loop(boundary check)
+                    while(row >= 1 && row <= 8 && col >= 1 && col <= 8){
+                        //newPosition pieceAtPosition
+                        ChessPosition newPosition = new ChessPosition(row,col);
+                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+                        //move allowed
+                        if(pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()){
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                        }
+                        //Stop after any piece
+                        if(pieceAtPosition != null) break;
 
-                    while (true) {
+                        //row col - keeps sliding
                         row += direction[0];
                         col += direction[1];
 
-                        // Check if position is still on the board
-                        if (row < 1 || row > 8 || col < 1 || col > 8) {
-                            break;
-                        }
-
-                        ChessPosition newPosition = new ChessPosition(row, col);
-                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
-
-                        // If square is empty, add move
-                        if (pieceAtPosition == null) {
-                            moves.add(new ChessMove(myPosition, newPosition, null));
-                        }
-                        // If square has opponent's piece, add move and stop
-                        else if (pieceAtPosition.getTeamColor() != this.getTeamColor()) {
-                            moves.add(new ChessMove(myPosition, newPosition, null));
-                            break;
-                        }
-                        // If square has our own piece, stop without adding
-                        else {
-                            break;
-                        }
-                    }
-                }
-                break;
-            case KNIGHT:
-                // All 8 possible L-shaped knight moves
-                int[][] knightMoves = {
-                        {2, 1}, {2, -1},    // Up-right and up-left
-                        {-2, 1}, {-2, -1},   // Down-right and down-left
-                        {1, 2}, {1, -2},     // Right-up and right-down
-                        {-1, 2}, {-1, -2}    // Left-up and left-down
-                };
-
-                for (int[] move : knightMoves) {
-                    int newRow = myPosition.getRow() + move[0];
-                    int newCol = myPosition.getColumn() + move[1];
-
-                    // Check if new position is on the board
-                    if (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) {
-                        ChessPosition newPosition = new ChessPosition(newRow, newCol);
-                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
-
-                        // Add move if square is empty or contains opponent's piece
-                        if (pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()) {
-                            moves.add(new ChessMove(myPosition, newPosition, null));
-                        }
                     }
                 }
                 break;
             case ROOK:
-                // Rook moves (up, down, right, left)
+                //directions 4 - diagonals
                 int[][] rookDirections = {
-                        {1, 0},   // Up
-                        {-1, 0},  // Down
-                        {0, 1},   // Right
-                        {0, -1}   // Left
+                        {0,-1},{0,1},{1,0},{-1,0}
                 };
+                //For loop
+                for(int[] direction : rookDirections){
+                    //row col
+                    int row = myPosition.getRow() + direction[0];
+                    int col = myPosition.getColumn() + direction[1];
 
-                for (int[] direction : rookDirections) {
-                    int row = myPosition.getRow();
-                    int col = myPosition.getColumn();
+                    //while loop(boundary check)
+                    while(row >= 1 && row <= 8 && col >= 1 && col <= 8){
+                        //newPosition pieceAtPosition
+                        ChessPosition newPosition = new ChessPosition(row,col);
+                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+                        //move allowed
+                        if(pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()){
+                            moves.add(new ChessMove(myPosition, newPosition, null));
+                        }
+                        //Stop after any piece
+                        if(pieceAtPosition != null) break;
 
-                    while (true) {
+                        //row col - keeps sliding
                         row += direction[0];
                         col += direction[1];
 
-                        // Check if position is still on the board
-                        if (row < 1 || row > 8 || col < 1 || col > 8) {
-                            break;
-                        }
+                    }
+                }
+                break;
+            case KNIGHT:
+                //8 L shapes
+                int[][] knightDirections = {
+                        {2,-1},{2,1},{1,-2},{1,2},{-1,-2},{-1,2},{-2,-1},{-2,1}
+                };
+                //For loop
+                for (int[] direction : knightDirections) {
+                    //row col
+                    int row = myPosition.getRow() + direction[0];
+                    int col = myPosition.getColumn() + direction[1];
 
-                        ChessPosition newPosition = new ChessPosition(row, col);
-                        ChessPiece pieceAtPosition = board.getPiece(newPosition);
+                    //boundary check
+                    if (row < 1 || row > 8 || col < 1 || col > 8) continue;
 
-                        // If square is empty, add move
-                        if (pieceAtPosition == null) {
-                            moves.add(new ChessMove(myPosition, newPosition, null));
-                        }
-                        // If square has opponent's piece, add move and stop
-                        else if (pieceAtPosition.getTeamColor() != this.getTeamColor()) {
-                            moves.add(new ChessMove(myPosition, newPosition, null));
-                            break;
-                        }
-                        // If square has our own piece, stop without adding
-                        else {
-                            break;
-                        }
+                    //newPosition pieceAtPosition
+                    ChessPosition newPosition = new ChessPosition(row, col);
+                    ChessPiece pieceAtPosition = board.getPiece(newPosition);
+
+                    //move allowed
+                    if (pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()) {
+                        moves.add(new ChessMove(myPosition, newPosition, null));
                     }
                 }
                 break;
@@ -274,7 +245,6 @@ public class ChessPiece {
                 }
                 break;
         }
-
         return moves;
     }
 
