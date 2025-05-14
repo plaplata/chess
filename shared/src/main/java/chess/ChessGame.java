@@ -60,9 +60,8 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessPiece piece = board.getPiece(move.getStartPosition());
-
         // Basic validation
+        ChessPiece piece = board.getPiece(move.getStartPosition());
         if (piece == null) {
             throw new InvalidMoveException("No piece at start position");
         }
@@ -70,18 +69,116 @@ public class ChessGame {
             throw new InvalidMoveException("Not your turn");
         }
 
-        // Execute the move
+        // Check if the move is valid for this piece
+        Collection<ChessMove> validMoves = piece.pieceMoves(board, move.getStartPosition());
+        boolean isValidMove = false;
+        for (ChessMove validMove : validMoves) {
+            if (validMove.getEndPosition().equals(move.getEndPosition()) &&
+                    (validMove.getPromotionPiece() == move.getPromotionPiece())) {
+                isValidMove = true;
+                break;
+            }
+        }
+        if (!isValidMove) {
+            throw new InvalidMoveException("Invalid move for this piece");
+        }
+
+        // Check for blocking pieces (except knights)
+        if (piece.getPieceType() != ChessPiece.PieceType.KNIGHT) {
+            if (isPathBlocked(move.getStartPosition(), move.getEndPosition())) {
+                throw new InvalidMoveException("Path is blocked");
+            }
+        }
+
+        // Check if capturing own piece
+        ChessPiece targetPiece = board.getPiece(move.getEndPosition());
+        if (targetPiece != null && targetPiece.getTeamColor() == teamTurn) {
+            throw new InvalidMoveException("Cannot capture your own piece");
+        }
+
+        // Pawn specific rules
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
+            // Check pawn promotion
+            int promotionRow = (teamTurn == TeamColor.WHITE) ? 8 : 1;
+            if (move.getEndPosition().getRow() == promotionRow) {
+                if (move.getPromotionPiece() == null ||
+                        move.getPromotionPiece() == ChessPiece.PieceType.PAWN ||
+                        move.getPromotionPiece() == ChessPiece.PieceType.KING) {
+                    throw new InvalidMoveException("Invalid pawn promotion");
+                }
+            }
+
+            // Check diagonal moves must be captures
+            if (move.getStartPosition().getColumn() != move.getEndPosition().getColumn()) {
+                if (targetPiece == null) {
+                    throw new InvalidMoveException("Pawns can only move diagonally to capture");
+                }
+            }
+        }
+
+        // Check if move would leave king in check
+        ChessBoard testBoard = new ChessBoard();
+        copyBoard(board, testBoard);  // Create a copy of the board
+
+        // Make the move on the test board
+        testBoard.addPiece(move.getEndPosition(), piece);
+        testBoard.addPiece(move.getStartPosition(), null);
+
+        // If promotion, update the piece
+        if (move.getPromotionPiece() != null) {
+            testBoard.addPiece(move.getEndPosition(),
+                    new ChessPiece(teamTurn, move.getPromotionPiece()));
+        }
+
+        // Check if king is in check after move
+        ChessGame testGame = new ChessGame();
+        testGame.setBoard(testBoard);
+        testGame.setTeamTurn(teamTurn);
+
+        if (testGame.isInCheck(teamTurn)) {
+            throw new InvalidMoveException("Move would leave king in check");
+        }
+
+        // Make the actual move
         board.addPiece(move.getEndPosition(), piece);
         board.addPiece(move.getStartPosition(), null);
 
-        // Handle pawn promotion
+        // Handle promotion
         if (move.getPromotionPiece() != null) {
             board.addPiece(move.getEndPosition(),
-                    new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
+                    new ChessPiece(teamTurn, move.getPromotionPiece()));
         }
 
         // Switch turns
         teamTurn = (teamTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+    }
+
+    // Helper method to copy board state
+    private void copyBoard(ChessBoard source, ChessBoard destination) {
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition pos = new ChessPosition(row, col);
+                destination.addPiece(pos, source.getPiece(pos));
+            }
+        }
+    }
+
+    // Helper method to check if path is blocked
+    private boolean isPathBlocked(ChessPosition start, ChessPosition end) {
+        int rowStep = Integer.compare(end.getRow(), start.getRow());
+        int colStep = Integer.compare(end.getColumn(), start.getColumn());
+
+        int currentRow = start.getRow() + rowStep;
+        int currentCol = start.getColumn() + colStep;
+
+        while (currentRow != end.getRow() || currentCol != end.getColumn()) {
+            if (board.getPiece(new ChessPosition(currentRow, currentCol)) != null) {
+                return true;
+            }
+            currentRow += rowStep;
+            currentCol += colStep;
+        }
+        return false;
     }
 
     // Helper method to find king's position
