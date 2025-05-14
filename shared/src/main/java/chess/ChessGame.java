@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -50,7 +51,43 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(startPosition);
+        if (piece == null) {
+            return null;
+        }
+
+        // Get all potential moves for the piece
+        Collection<ChessMove> potentialMoves = piece.pieceMoves(board, startPosition);
+        Collection<ChessMove> validMoves = new ArrayList<>();
+
+        // Check each move to see if it would leave king in check
+        for (ChessMove move : potentialMoves) {
+            // Create a test board to simulate the move
+            ChessBoard testBoard = new ChessBoard();
+            copyBoard(this.board, testBoard);
+
+            // Execute the move on the test board
+            ChessPiece movingPiece = testBoard.getPiece(move.getStartPosition());
+            testBoard.addPiece(move.getEndPosition(), movingPiece);
+            testBoard.addPiece(move.getStartPosition(), null);
+
+            // Handle promotion
+            if (move.getPromotionPiece() != null) {
+                testBoard.addPiece(move.getEndPosition(),
+                        new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
+            }
+
+            // Check if king would be in check after this move
+            ChessGame testGame = new ChessGame();
+            testGame.setBoard(testBoard);
+            testGame.setTeamTurn(piece.getTeamColor());
+
+            if (!testGame.isInCheck(piece.getTeamColor())) {
+                validMoves.add(move);
+            }
+        }
+
+        return validMoves;
     }
 
     /**
