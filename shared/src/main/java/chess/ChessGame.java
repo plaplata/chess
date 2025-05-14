@@ -51,6 +51,8 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        // Check if there's actually a piece at the starting position
+        // Returns null if no piece exists at the given position (per method contract)
         ChessPiece piece = board.getPiece(startPosition);
         if (piece == null) {
             return null;
@@ -201,6 +203,14 @@ public class ChessGame {
     }
 
     // Helper method to check if path is blocked
+    /**
+     * Checks if there are any pieces blocking the path between two positions.
+     * Works for straight lines (rooks/queens) and diagonals (bishops/queens).
+     *
+     * @param start The starting position of the piece
+     * @param end The destination position
+     * @return true if any squares between start and end (exclusive) are occupied
+     */
     private boolean isPathBlocked(ChessPosition start, ChessPosition end) {
         int rowStep = Integer.compare(end.getRow(), start.getRow());
         int colStep = Integer.compare(end.getColumn(), start.getColumn());
