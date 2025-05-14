@@ -2,7 +2,6 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -14,6 +13,16 @@ import java.util.Objects;
 public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
+
+    private ChessGame game;
+
+    public void setGame(ChessGame game) {
+        this.game = game;
+    }
+
+    public ChessGame getGame() {
+        return this.game;
+    }
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
@@ -211,18 +220,16 @@ public class ChessPiece {
                 }
                 break;
             case PAWN:
-                //Pawn moves
-                //ternary operator. If the team color is white, set (dir/startrow/promotionrow) to first value, otherwise to the second value
                 int direction = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 1 : -1;
                 int startRow = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 2 : 7;
                 int promotionRow = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 8 : 1;
 
                 // Single move forward
                 ChessPosition oneForward = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn());
-                if (board.getPiece(oneForward) == null) {
+                if (oneForward.getRow() >= 1 && oneForward.getRow() <= 8 && board.getPiece(oneForward) == null) {
                     addPawnMoveIfValid(board, myPosition, oneForward, promotionRow, moves);
 
-                    // Double move from starting position
+                    // Double move from starting row
                     if (myPosition.getRow() == startRow) {
                         ChessPosition twoForward = new ChessPosition(myPosition.getRow() + 2 * direction, myPosition.getColumn());
                         if (board.getPiece(twoForward) == null) {
@@ -231,19 +238,46 @@ public class ChessPiece {
                     }
                 }
 
-                // Diagonal captures
-                int[] captureCols = {myPosition.getColumn() - 1, myPosition.getColumn() + 1};
-                for (int col : captureCols) {
-                    if (col >= 1 && col <= 8) {
-                        ChessPosition capturePos = new ChessPosition(myPosition.getRow() + direction, col);
-                        ChessPiece target = board.getPiece(capturePos);
+                // Diagonal captures and En Passant
+                for (int dCol = -1; dCol <= 1; dCol += 2) {
+                    int captureCol = myPosition.getColumn() + dCol;
+                    if (captureCol >= 1 && captureCol <= 8) {
+                        ChessPosition diagonal = new ChessPosition(myPosition.getRow() + direction, captureCol);
+                        ChessPiece target = board.getPiece(diagonal);
+
+                        // Normal capture
                         if (target != null && target.getTeamColor() != this.getTeamColor()) {
-                            addPawnMoveIfValid(board, myPosition, capturePos, promotionRow, moves);
+                            addPawnMoveIfValid(board, myPosition, diagonal, promotionRow, moves);
                         }
-                        // En Passant logic should go here, later
+
+                        // En Passant
+                        ChessGame game = this.game;
+                        if (game != null) {
+                            ChessPosition enPassantTarget = game.getEnPassantTarget();
+                            if (enPassantTarget != null &&
+                                    enPassantTarget.getRow() == myPosition.getRow() + direction &&
+                                    enPassantTarget.getColumn() == captureCol) {
+
+                                ChessPosition opponentPawnPos = new ChessPosition(myPosition.getRow(), captureCol);
+                                ChessPiece opponentPawn = board.getPiece(opponentPawnPos);
+
+                                if (opponentPawn != null &&
+                                        opponentPawn.getPieceType() == PieceType.PAWN &&
+                                        opponentPawn.getTeamColor() != this.getTeamColor()) {
+
+                                    ChessPosition landing = enPassantTarget;
+                                    System.out.println("[DEBUG] En Passant possible for: " + myPosition + " -> " + landing);
+                                    moves.add(new ChessMove(myPosition, landing, null));
+                                    System.out.println("[DEBUG] En Passant move generated: " + myPosition + " -> " + landing);
+                                }
+                            }
+                        }
+
+
                     }
                 }
                 break;
+
         }
         return moves;
     }

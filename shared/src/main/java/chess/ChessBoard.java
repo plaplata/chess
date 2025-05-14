@@ -10,6 +10,21 @@ import java.util.Arrays;
  */
 public class ChessBoard {
     private ChessPiece[][] squares = new ChessPiece[8][8];
+    private ChessGame game;
+
+    public ChessGame getGame() { return game; }
+    public void setGame(ChessGame game) {
+        this.game = game;
+        // Set game reference for all pieces (if needed)
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                if (squares[row][col] != null) {
+                    squares[row][col].setGame(game);
+                }
+            }
+        }
+    }
+
     public ChessBoard() {
         
     }
@@ -22,6 +37,9 @@ public class ChessBoard {
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
         squares[position.getRow()-1][position.getColumn()-1] = piece;
+        if (piece != null && game != null) {
+            piece.setGame(this.game);
+        }
     }
 
     /**

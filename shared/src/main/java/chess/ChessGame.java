@@ -13,9 +13,15 @@ import java.util.Objects;
 public class ChessGame {
     private TeamColor teamTurn;
     private ChessBoard board;
+    private ChessPosition enPassantTarget;
+
+    public ChessPosition getEnPassantTarget() { return enPassantTarget; }
+    public void setEnPassantTarget(ChessPosition pos) { this.enPassantTarget = pos; }
+
     public ChessGame() {
         this.teamTurn = TeamColor.WHITE; // White plays first
         this.board = new ChessBoard();
+        this.board.setGame(this);
         this.board.resetBoard();
     }
 
@@ -51,27 +57,43 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        // Check if there's actually a piece at the starting position
-        // Returns null if no piece exists at the given position (per method contract)
         ChessPiece piece = board.getPiece(startPosition);
         if (piece == null) {
             return null;
         }
 
-        // Get all potential moves for the piece
+        // Associate this game with the piece so it can access en passant info
+        piece.setGame(this);
+
         Collection<ChessMove> potentialMoves = piece.pieceMoves(board, startPosition);
         Collection<ChessMove> validMoves = new ArrayList<>();
 
-        // Check each move to see if it would leave king in check
         for (ChessMove move : potentialMoves) {
-            // Create a test board to simulate the move
             ChessBoard testBoard = new ChessBoard();
             copyBoard(this.board, testBoard);
 
-            // Execute the move on the test board
             ChessPiece movingPiece = testBoard.getPiece(move.getStartPosition());
-            testBoard.addPiece(move.getEndPosition(), movingPiece);
             testBoard.addPiece(move.getStartPosition(), null);
+
+            boolean isEnPassant = false;
+            // Handle En Passant capture simulation
+            if (movingPiece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                    move.getStartPosition().getColumn() != move.getEndPosition().getColumn() &&
+                    testBoard.getPiece(move.getEndPosition()) == null) {
+
+                ChessPosition enPassantTarget = this.enPassantTarget;
+                if (enPassantTarget != null &&
+                        move.getEndPosition().equals(enPassantTarget)) {
+                    isEnPassant = true;
+
+                    int capturedPawnRow = move.getStartPosition().getRow();
+                    ChessPosition capturedPawnPos = new ChessPosition(capturedPawnRow, move.getEndPosition().getColumn());
+
+                    testBoard.addPiece(capturedPawnPos, null); // Remove the captured pawn
+                }
+            }
+
+            testBoard.addPiece(move.getEndPosition(), movingPiece);
 
             // Handle promotion
             if (move.getPromotionPiece() != null) {
@@ -79,7 +101,6 @@ public class ChessGame {
                         new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
             }
 
-            // Check if king would be in check after this move
             ChessGame testGame = new ChessGame();
             testGame.setBoard(testBoard);
             testGame.setTeamTurn(piece.getTeamColor());
@@ -89,8 +110,10 @@ public class ChessGame {
             }
         }
 
+        System.out.println("[DEBUG] Calculating valid moves for: " + startPosition);
         return validMoves;
     }
+
 
     /**
      * Makes a move in a chess game
@@ -99,6 +122,7 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+
         // Basic validation
         ChessPiece piece = board.getPiece(move.getStartPosition());
         if (piece == null) {
@@ -108,8 +132,19 @@ public class ChessGame {
             throw new InvalidMoveException("Not your turn");
         }
 
+        // If pawn moves two spaces, set en passant target to the square it skipped
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                Math.abs(move.getStartPosition().getRow() - move.getEndPosition().getRow()) == 2) {
+            int enPassantRow = piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
+                    move.getStartPosition().getRow() + 1 :
+                    move.getStartPosition().getRow() - 1;
+            enPassantTarget = new ChessPosition(enPassantRow, move.getStartPosition().getColumn());
+            System.out.println("[DEBUG] En Passant target set at: " + enPassantTarget);
+        }
+
+
         // Check if the move is valid for this piece
-        Collection<ChessMove> validMoves = piece.pieceMoves(board, move.getStartPosition());
+        Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
         boolean isValidMove = false;
         for (ChessMove validMove : validMoves) {
             if (validMove.getEndPosition().equals(move.getEndPosition()) &&
@@ -150,14 +185,17 @@ public class ChessGame {
             // Check diagonal moves must be captures
             if (move.getStartPosition().getColumn() != move.getEndPosition().getColumn()) {
                 if (targetPiece == null) {
-                    throw new InvalidMoveException("Pawns can only move diagonally to capture");
+                    ChessPosition enPassantTarget = board.getGame().getEnPassantTarget();
+                    if (enPassantTarget == null || !move.getEndPosition().equals(enPassantTarget)) {
+                        throw new InvalidMoveException("Pawns can only move diagonally to capture");
+                    }
                 }
             }
         }
 
         // Check if move would leave king in check
         ChessBoard testBoard = new ChessBoard();
-        copyBoard(board, testBoard);  // Create a copy of the board
+        copyBoard(board, testBoard);
 
         // Make the move on the test board
         testBoard.addPiece(move.getEndPosition(), piece);
@@ -178,6 +216,16 @@ public class ChessGame {
             throw new InvalidMoveException("Move would leave king in check");
         }
 
+        // Handle en passant capture before making the actual move
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                move.getStartPosition().getColumn() != move.getEndPosition().getColumn() &&
+                board.getPiece(move.getEndPosition()) == null) {
+            // Remove the captured pawn (which is adjacent to the destination)
+            int capturedPawnRow = move.getStartPosition().getRow();
+            ChessPosition capturedPawnPos = new ChessPosition(capturedPawnRow, move.getEndPosition().getColumn());
+            board.addPiece(capturedPawnPos, null);
+        }
+
         // Make the actual move
         board.addPiece(move.getEndPosition(), piece);
         board.addPiece(move.getStartPosition(), null);
@@ -190,6 +238,12 @@ public class ChessGame {
 
         // Switch turns
         teamTurn = (teamTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+
+        // Clear enPassantTarget unless it was just set by a 2-step pawn move
+        if (!(piece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                Math.abs(move.getStartPosition().getRow() - move.getEndPosition().getRow()) == 2)) {
+            enPassantTarget = null;
+        }
     }
 
     // Helper method to copy board state
@@ -365,6 +419,7 @@ public class ChessGame {
      */
     public void setBoard(ChessBoard board) {
         this.board = board;
+        this.board.setGame(this);
     }
 
     /**
