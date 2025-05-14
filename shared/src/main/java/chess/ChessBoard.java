@@ -54,6 +54,22 @@ public class ChessBoard {
     }
 
     /**
+     * Checks if a piece is in its starting position
+     */
+    public boolean isInitialPosition(ChessPosition position, ChessPiece piece) {
+        if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+            return (piece.getTeamColor() == ChessGame.TeamColor.WHITE && position.equals(new ChessPosition(1, 5))) ||
+                    (piece.getTeamColor() == ChessGame.TeamColor.BLACK && position.equals(new ChessPosition(8, 5)));
+        } else if (piece.getPieceType() == ChessPiece.PieceType.ROOK) {
+            return (piece.getTeamColor() == ChessGame.TeamColor.WHITE &&
+                    (position.equals(new ChessPosition(1, 1)) || position.equals(new ChessPosition(1, 8)))) ||
+                    (piece.getTeamColor() == ChessGame.TeamColor.BLACK &&
+                            (position.equals(new ChessPosition(8, 1)) || position.equals(new ChessPosition(8, 8))));
+        }
+        return false;
+    }
+
+    /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)
      */

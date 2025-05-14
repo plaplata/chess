@@ -68,6 +68,21 @@ public class ChessGame {
         Collection<ChessMove> potentialMoves = piece.pieceMoves(board, startPosition);
         Collection<ChessMove> validMoves = new ArrayList<>();
 
+        // CASTLING CODE
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && !piece.hasMoved()) {
+            // Kingside castle
+            if (canCastle(startPosition, 1)) {
+                validMoves.add(new ChessMove(startPosition,
+                        new ChessPosition(startPosition.getRow(), startPosition.getColumn() + 2), null));
+            }
+            // Queenside castle
+            if (canCastle(startPosition, -1)) {
+                validMoves.add(new ChessMove(startPosition,
+                        new ChessPosition(startPosition.getRow(), startPosition.getColumn() - 2), null));
+            }
+        }
+        // CASTILNG CODE END
+
         for (ChessMove move : potentialMoves) {
             ChessBoard testBoard = new ChessBoard();
             copyBoard(this.board, testBoard);
@@ -131,6 +146,15 @@ public class ChessGame {
         if (piece.getTeamColor() != teamTurn) {
             throw new InvalidMoveException("Not your turn");
         }
+
+        // CASTLING CODE
+        // Handle castling move (king moving 2 squares)
+        if (piece.getPieceType() == ChessPiece.PieceType.KING &&
+                Math.abs(move.getStartPosition().getColumn() - move.getEndPosition().getColumn()) == 2) {
+            executeCastle(move);
+            return; // Castling handled, exit method
+        }
+        // CASTLING CODE END
 
         // If pawn moves two spaces, set en passant target to the square it skipped
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
@@ -230,6 +254,9 @@ public class ChessGame {
         board.addPiece(move.getEndPosition(), piece);
         board.addPiece(move.getStartPosition(), null);
 
+        // CASTLING CODE - 1 line
+        piece.setMoved(true);
+
         // Handle promotion
         if (move.getPromotionPiece() != null) {
             board.addPiece(move.getEndPosition(),
@@ -281,6 +308,103 @@ public class ChessGame {
         }
         return false;
     }
+
+    // CASTLING HELPER METHODS START HERE
+
+    /**
+     * Checks if castling is possible in the given direction
+     * @param kingPos Position of the king
+     * @param direction 1 for kingside, -1 for queenside
+     * @return true if castling is allowed
+     */
+    private boolean canCastle(ChessPosition kingPos, int direction) {
+        ChessPiece king = board.getPiece(kingPos);
+        if (king == null || king.hasMoved() || king.getPieceType() != ChessPiece.PieceType.KING ||
+                isInCheck(king.getTeamColor())) {
+            return false;
+        }
+
+        int rookCol = direction > 0 ? 8 : 1;
+        ChessPosition rookPos = new ChessPosition(kingPos.getRow(), rookCol);
+        ChessPiece rook = board.getPiece(rookPos);
+
+        if (rook == null || rook.hasMoved() || rook.getPieceType() != ChessPiece.PieceType.ROOK ||
+                rook.getTeamColor() != king.getTeamColor()) {
+            return false;
+        }
+
+        // Check path is clear
+        int step = direction > 0 ? 1 : -1;
+        for (int col = kingPos.getColumn() + step; col != rookCol; col += step) {
+            if (board.getPiece(new ChessPosition(kingPos.getRow(), col)) != null) {
+                return false;
+            }
+        }
+
+        // Check squares king moves through aren't under attack
+        for (int col = kingPos.getColumn(); col != kingPos.getColumn() + 2 * step + step; col += step) {
+            if (isSquareUnderAttack(new ChessPosition(kingPos.getRow(), col), king.getTeamColor())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if a square is under attack by opponent pieces
+     */
+    private boolean isSquareUnderAttack(ChessPosition position, TeamColor teamColor) {
+        TeamColor opponentColor = (teamColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition pos = new ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(pos);
+                if (piece != null && piece.getTeamColor() == opponentColor) {
+                    Collection<ChessMove> moves = piece.pieceMoves(board, pos);
+                    for (ChessMove move : moves) {
+                        if (move.getEndPosition().equals(position)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Executes a castling move
+     */
+    private void executeCastle(ChessMove move) throws InvalidMoveException {
+        ChessPiece king = board.getPiece(move.getStartPosition());
+        if (king == null || king.getPieceType() != ChessPiece.PieceType.KING) {
+            throw new InvalidMoveException("Invalid castling attempt");
+        }
+
+        int direction = move.getEndPosition().getColumn() > move.getStartPosition().getColumn() ? 1 : -1;
+        int rookCol = direction > 0 ? 8 : 1;
+        ChessPosition rookPos = new ChessPosition(move.getStartPosition().getRow(), rookCol);
+        ChessPiece rook = board.getPiece(rookPos);
+
+        // Move king
+        board.addPiece(move.getStartPosition(), null);
+        board.addPiece(move.getEndPosition(), king);
+        king.setMoved(true);
+
+        // Move rook
+        int newRookCol = move.getEndPosition().getColumn() - direction;
+        ChessPosition newRookPos = new ChessPosition(move.getEndPosition().getRow(), newRookCol);
+        board.addPiece(rookPos, null);
+        board.addPiece(newRookPos, rook);
+        rook.setMoved(true);
+
+        // Switch turns
+        teamTurn = (teamTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+    }
+
+    // CASTLING HELPER METHODS END HERE
 
     // Helper method to find king's position
     private ChessPosition findKingPosition(TeamColor teamColor) {

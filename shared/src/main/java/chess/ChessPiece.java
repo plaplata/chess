@@ -15,6 +15,15 @@ public class ChessPiece {
     private final PieceType type;
 
     private ChessGame game;
+    private boolean hasMoved = false;
+
+    // hasMoved setMoved added for castling
+    public boolean hasMoved() {
+        return hasMoved;
+    }
+    public void setMoved(boolean moved) {
+        this.hasMoved = moved;
+    }
 
     public void setGame(ChessGame game) {
         this.game = game;
