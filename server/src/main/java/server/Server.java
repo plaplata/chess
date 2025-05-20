@@ -30,6 +30,7 @@ public class Server {
         UserLogin userLogin = new UserLogin(users, auths);
         UserLogout userLogout = new UserLogout(auths);
         ClearService clearService = new ClearService(users, auths, games);
+        GameService gameService = new GameService(games, auths);
 
         // Global auth filter (only apply to protected routes)
         before((request, response) -> {
@@ -56,6 +57,12 @@ public class Server {
         delete("/session", userLogout::logout);
         delete("/db", (req, res) -> clearService.clearAll(req, res));
 
+        // Game-related routes
+        post("/game", gameService::createGame);
+        get("/game", gameService::listGames);
+        put("/game", gameService::joinGame);
+
+        // Error handler
         exception(Exception.class, (e, req, res) -> {
             res.status(500);
             res.body("Internal Server Error: " + e.getMessage());
