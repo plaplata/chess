@@ -8,61 +8,109 @@ import server.UserLogin;
 import spark.Request;
 import spark.Response;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 public class UserLoginTest {
 
-    private UserLogin userLogin;
+    private UserLogin userLoginService;
     private UserMemoryStorage userStorage;
     private AuthMemoryStorage authStorage;
-    private Request request;
-    private Response response;
 
     @BeforeEach
     void setup() {
         userStorage = new UserMemoryStorage();
         authStorage = new AuthMemoryStorage();
-        userLogin = new UserLogin(userStorage, authStorage);
-        request = mock(Request.class);
-        response = mock(Response.class);
+        userLoginService = new UserLogin(userStorage, authStorage);
+    }
+
+    static class SimpleRequest extends Request {
+        private final String body;
+
+        public SimpleRequest(String body) {
+            this.body = body;
+        }
+
+        @Override
+        public String body() {
+            return body;
+        }
+    }
+
+    static class SimpleResponse extends Response {
+        private int status;
+        private String type;
+
+        @Override
+        public void status(int statusCode) {
+            this.status = statusCode;
+        }
+
+        @Override
+        public int status() {
+            return status;
+        }
+
+        @Override
+        public void type(String contentType) {
+            this.type = contentType;
+        }
+
+        @Override
+        public String type() {
+            return type;
+        }
     }
 
     @Test
-    void loginUser_Success() {
-        userStorage.addUser("pablo", "pass123", "pablo@email.com");
+    void login_Success() {
+        // Arrange
+        String username = "pablo";
+        String password = "secure";
+        userStorage.addUser(username, password, "pablo@email.com");
 
         String requestBody = """
             {
               "username": "pablo",
-              "password": "pass123"
+              "password": "secure"
             }
         """;
 
-        when(request.body()).thenReturn(requestBody);
+        Request request = new SimpleRequest(requestBody);
+        SimpleResponse response = new SimpleResponse();
 
-        String result = userLogin.login(request, response);
+        // Act
+        String result = userLoginService.login(request, response);
 
-        verify(response).status(200);
-        assertTrue(result.contains("\"username\":\"pablo\""));
-        assertTrue(result.contains("\"authToken\""));
+        // Assert
+        System.out.println("Login result: " + result);
+        assertEquals(200, response.status(), "Expected HTTP 200 for successful login");
+        assertTrue(result.contains("\"username\":\"pablo\""), "Expected username in response");
+        assertTrue(result.contains("authToken"), "Expected authToken in response");
     }
 
     @Test
-    void loginUser_InvalidCredentials() {
-        // No user added to simulate invalid credentials
+    void login_Fail_InvalidCredentials() {
+        // Arrange
+        userStorage.addUser("alice", "password123", "alice@email.com");
+
         String requestBody = """
             {
-              "username": "ghost",
-              "password": "wrongpass"
+              "username": "alice",
+              "password": "wrongpassword"
             }
         """;
 
-        when(request.body()).thenReturn(requestBody);
+        Request request = new SimpleRequest(requestBody);
+        SimpleResponse response = new SimpleResponse();
 
-        String result = userLogin.login(request, response);
+        // Act
+        String result = userLoginService.login(request, response);
 
-        verify(response).status(401);
-        assertTrue(result.contains("unauthorized"));
+        // Assert
+        System.out.println("Login failure result: " + result);
+        assertEquals(401, response.status(), "Expected HTTP 401 for invalid login");
+        assertTrue(result.contains("unauthorized"), "Expected error message in response");
     }
 }

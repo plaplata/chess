@@ -38,3 +38,6 @@ ChessBoardTests now passing
 ---
 Added Overrides for equals and hashCode in ChessPiece.java
 Now passing all tests!
+
+--
+Phase 3, unit tests cannot have mockito.
