@@ -1,12 +1,15 @@
 package server;
 
+import com.google.gson.Gson;
 import dataAccess.AuthStorage;
 import spark.Request;
 import spark.Response;
 
-public class UserLogout {
+import java.util.Map;
 
+public class UserLogout {
     private final AuthStorage authStorage;
+    private final Gson gson = new Gson();
 
     public UserLogout(AuthStorage authStorage) {
         this.authStorage = authStorage;
@@ -17,16 +20,12 @@ public class UserLogout {
 
         if (authToken == null || !authStorage.isValidToken(authToken)) {
             response.status(401);
-            return toJson("Error: unauthorized");
+            return gson.toJson(Map.of("message", "Error: unauthorized"));
         }
 
         authStorage.removeToken(authToken);
         response.status(200);
         response.type("application/json");
-        return "{}";
-    }
-
-    private String toJson(String message) {
-        return String.format("{\"message\":\"%s\"}", message);
+        return gson.toJson(Map.of("message", "logged out"));
     }
 }
