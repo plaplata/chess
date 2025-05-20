@@ -1,8 +1,15 @@
 package server;
 
 import static spark.Spark.*;
+import com.google.gson.Gson;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Server {
+
+    public static Set<String> tokens = new HashSet<>();
+    public static Gson gson = new Gson();
+    private static final UserService userService = new UserReg();
 
     public static void main(String[] args) {
         Server server = new Server();
@@ -14,33 +21,26 @@ public class Server {
 
         staticFiles.location("web");
 
-        get("/", (request, response) -> {
-            // show something
-            response.status(200);
-            response.type("text/plain");
-            response.header("CS240", "Awesome!");
-            return "get";
+        before((request, response) -> {
+            String path = request.pathInfo();
+            if (!path.equals("/user")) {
+                String authToken = request.headers("Authorization");
+                boolean authenticated = authToken != null && tokens.contains(authToken);
+                if (!authenticated) {
+                    halt(401, "You are not welcome here");
+                }
+            }
         });
 
-        post("/", (request, response) -> {
-            // create something
-            return "post";
+        post("/user", (request, response) -> userService.register(request, response));
+
+        exception(Exception.class, (exception, req, res) -> {
+            res.status(500);
+            res.body("Internal Server Error: " + exception.getMessage());
+
+
         });
-
-        put("/", (request, response) -> {
-            // update something
-            return "put";
-        });
-
-        delete("/", (request, response) -> {
-            // delete something
-            return "delete";
-        });
-
-        init();
-
-        awaitInitialization();
-        return port();
+        return desiredPort;
     }
 
     public void stop() {
