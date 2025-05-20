@@ -6,8 +6,9 @@ import dataaccess.UserStorage;
 import spark.Request;
 import spark.Response;
 
-public class ClearService {
+import java.util.Map;
 
+public class ClearService {
     private final UserStorage users;
     private final AuthStorage auths;
     private final GameStorage games;
@@ -18,13 +19,12 @@ public class ClearService {
         this.games = games;
     }
 
-    public Object clearAll(Request request, Response response) {
+    public String clearAll(Request req, Response res) {
         users.clear();
         auths.clear();
         games.clear();
 
-        response.status(200);
-        response.type("application/json");
+        res.status(200);
         return "{}";
     }
 }

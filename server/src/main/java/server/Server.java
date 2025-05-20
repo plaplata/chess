@@ -8,6 +8,8 @@ import dataaccess.GameMemoryStorage;
 import dataaccess.UserMemoryStorage;
 import server.ClearService;
 
+import java.util.Collections;
+
 public class Server {
 
     public static Gson gson = new Gson();
@@ -46,7 +48,9 @@ public class Server {
             if (requiresAuth) {
                 String authToken = request.headers("Authorization");
                 if (authToken == null || !auths.isValidToken(authToken)) {
-                    halt(401, "Error: unauthorized");
+                    response.status(401);
+                    response.type("application/json");
+                    halt(401, new Gson().toJson(Collections.singletonMap("message", "Error: unauthorized")));
                 }
             }
         });
@@ -75,7 +79,7 @@ public class Server {
     }
 
     public void stop() {
-        stop();
-        awaitStop();
+        spark.Spark.stop();
+        spark.Spark.awaitStop();
     }
 }
