@@ -1,26 +1,31 @@
 package server;
 
 import com.google.gson.Gson;
-
+import dataaccess.AuthStorage;
 import dataaccess.UserStorage;
-import spark.*;
-import java.util.*;
+import spark.Request;
+import spark.Response;
 
-public class UserReg{
+import java.util.Map;
+import java.util.UUID;
+
+public class UserReg {
     public static Gson gson = new Gson();
 
     private final UserStorage userStorage;
-    public static Set<String> validTokens = new HashSet<>();
+    private final AuthStorage authStorage;
 
-    public UserReg(UserStorage storage) {
-        this.userStorage = storage;
+    public UserReg(UserStorage userStorage, AuthStorage authStorage) {
+        this.userStorage = userStorage;
+        this.authStorage = authStorage;
     }
 
     public String register(Request request, Response response) {
-        try{
-            User user = new Gson().fromJson(request.body(), User.class);
+        try {
+            User user = gson.fromJson(request.body(), User.class);
 
-            if (user.username == null || user.password == null || user.email == null || user.username.isEmpty() || user.password.isEmpty() || user.email.isEmpty()) {
+            if (user.username == null || user.password == null || user.email == null ||
+                    user.username.isEmpty() || user.password.isEmpty() || user.email.isEmpty()) {
                 response.status(400);
                 return gson.toJson(Map.of("message", "Error: bad request"));
             }
@@ -31,31 +36,30 @@ public class UserReg{
             }
 
             String authToken = generateToken();
-            validTokens.add(authToken);
+            authStorage.addToken(authToken, user.username);
 
             response.status(200);
             response.type("application/json");
             return gson.toJson(new AuthResponse(user.username, authToken));
+
         } catch (Exception e) {
             response.status(500);
             return gson.toJson(Map.of("message", e.getMessage()));
         }
     }
 
-    public static String generateToken() {
+    private static String generateToken() {
         return UUID.randomUUID().toString();
     }
+
     private static class User {
         String username;
         String password;
         String email;
     }
 
-
     private static class AuthResponse {
-        @SuppressWarnings("unused")
         String username;
-        @SuppressWarnings("unused")
         String authToken;
 
         AuthResponse(String username, String authToken) {

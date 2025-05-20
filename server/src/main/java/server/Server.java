@@ -26,16 +26,34 @@ public class Server {
         GameMemoryStorage games = new GameMemoryStorage();
 
         // Register services
-        UserReg userReg = new UserReg(users);
+        UserReg userReg = new UserReg(users, auths);
+        UserLogin userLogin = new UserLogin(users, auths);
+        UserLogout userLogout = new UserLogout(auths);
         ClearService clearService = new ClearService(users, auths, games);
 
-        // User Login
-        UserLogin userLogin = new UserLogin(users, auths);
-        post("/session", userLogin::login);
+        // Global auth filter (only apply to protected routes)
+        before((request, response) -> {
+            String path = request.pathInfo();
+            String method = request.requestMethod();
 
+            boolean requiresAuth =
+                    !(path.equals("/user") && method.equals("POST")) &&
+                            !(path.equals("/session") && method.equals("POST")) &&
+                            !(path.equals("/session") && method.equals("DELETE")) &&
+                            !(path.equals("/db") && method.equals("DELETE"));
+
+            if (requiresAuth) {
+                String authToken = request.headers("Authorization");
+                if (authToken == null || !auths.isValidToken(authToken)) {
+                    halt(401, "Error: unauthorized");
+                }
+            }
+        });
 
         // Register routes
         post("/user", userReg::register);
+        post("/session", userLogin::login);
+        delete("/session", userLogout::logout);
         delete("/db", (req, res) -> clearService.clearAll(req, res));
 
         exception(Exception.class, (e, req, res) -> {

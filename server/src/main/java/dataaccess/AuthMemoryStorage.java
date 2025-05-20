@@ -21,6 +21,10 @@ public class AuthMemoryStorage implements AuthStorage {
     public String getUsernameByToken(String authToken) {
         return tokens.get(authToken);
     }
+    @Override
+    public void removeToken(String authToken) {
+        tokens.remove(authToken);
+    }
 
     @Override
     public void clear() {
