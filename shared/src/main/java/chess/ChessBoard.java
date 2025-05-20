@@ -2,12 +2,6 @@ package chess;
 
 import java.util.Arrays;
 
-/**
- * A chessboard that can hold and rearrange chess pieces.
- * <p>
- * Note: You can add to this class, but you may not alter
- * signature of the existing methods.
- */
 public class ChessBoard {
     private ChessPiece[][] squares = new ChessPiece[8][8];
     private ChessGame game;
@@ -29,12 +23,6 @@ public class ChessBoard {
         
     }
 
-    /**
-     * Adds a chess piece to the chessboard
-     *
-     * @param position where to add the piece to
-     * @param piece    the piece to add
-     */
     public void addPiece(ChessPosition position, ChessPiece piece) {
         squares[position.getRow()-1][position.getColumn()-1] = piece;
         if (piece != null && game != null) {
@@ -42,20 +30,10 @@ public class ChessBoard {
         }
     }
 
-    /**
-     * Gets a chess piece on the chessboard
-     *
-     * @param position The position to get the piece from
-     * @return Either the piece at the position, or null if no piece is at that
-     * position
-     */
     public ChessPiece getPiece(ChessPosition position) {
         return squares[position.getRow()-1][position.getColumn()-1];
     }
 
-    /**
-     * Checks if a piece is in its starting position
-     */
     public boolean isInitialPosition(ChessPosition position, ChessPiece piece) {
         if (piece.getPieceType() == ChessPiece.PieceType.KING) {
             return (piece.getTeamColor() == ChessGame.TeamColor.WHITE && position.equals(new ChessPosition(1, 5))) ||
@@ -69,10 +47,6 @@ public class ChessBoard {
         return false;
     }
 
-    /**
-     * Sets the board to the default starting board
-     * (How the game of chess normally starts)
-     */
     public void resetBoard() {
         // Clear the board
         squares = new ChessPiece[8][8];
@@ -104,42 +78,6 @@ public class ChessBoard {
         squares[7][7] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
     }
 
-//    These are for easier to read error messages for the ChessBoardTests
-//    @Override
-//    public String toString() {
-//        StringBuilder sb = new StringBuilder();
-//        for (int row = 7; row >= 0; row--) {
-//            sb.append((row + 1) + " |");
-//            for (int col = 0; col < 8; col++) {
-//                ChessPiece piece = squares[row][col];
-//                sb.append(piece != null ? pieceToString(piece) : " ").append("|");
-//            }
-//            sb.append("\n");
-//        }
-//        sb.append("    a b c d e f g h");
-//        return sb.toString();
-//    }
-
-//    private String pieceToString(ChessPiece piece) {
-//        char symbol = getPieceSymbol(piece.getPieceType());
-//        return piece.getTeamColor() == ChessGame.TeamColor.WHITE
-//                ? String.valueOf(symbol).toUpperCase()
-//                : String.valueOf(symbol).toLowerCase();
-//    }
-
-//    private char getPieceSymbol(ChessPiece.PieceType type) {
-//        return switch (type) {
-//            case KING -> 'k';
-//            case QUEEN -> 'q';
-//            case ROOK -> 'r';
-//            case BISHOP -> 'b';
-//            case KNIGHT -> 'n';
-//            case PAWN -> 'p';
-//        };
-//    }
-
-
-    //right click generated @Override equals, hashCode
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -148,9 +86,7 @@ public class ChessBoard {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         ChessBoard that = (ChessBoard) o;
-
         return Arrays.deepEquals(squares, that.squares);
     }
 

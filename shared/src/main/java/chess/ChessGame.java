@@ -4,12 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
-/**
- * For a class that can manage a chess game, making moves on a board
- * <p>
- * Note: You can add to this class, but you may not alter
- * signature of the existing methods.
- */
 public class ChessGame {
     private TeamColor teamTurn;
     private ChessBoard board;
@@ -25,18 +19,10 @@ public class ChessGame {
         this.board.resetBoard();
     }
 
-    /**
-     * @return Which team's turn it is
-     */
     public TeamColor getTeamTurn() {
         return teamTurn;
     }
 
-    /**
-     * Set's which teams turn it is
-     *
-     * @param team the team whose turn it is
-     */
     public void setTeamTurn(TeamColor team) {
         this.teamTurn = team;
     }
@@ -49,13 +35,6 @@ public class ChessGame {
         BLACK
     }
 
-    /**
-     * Gets a valid moves for a piece at the given location
-     *
-     * @param startPosition the piece to get valid moves for
-     * @return Set of valid moves for requested piece, or null if no piece at
-     * startPosition
-     */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
         if (piece == null) {
@@ -129,13 +108,6 @@ public class ChessGame {
         return validMoves;
     }
 
-
-    /**
-     * Makes a move in a chess game
-     *
-     * @param move chess move to perform
-     * @throws InvalidMoveException if move is invalid
-     */
     public void makeMove(ChessMove move) throws InvalidMoveException {
 
         // Basic validation
@@ -283,15 +255,6 @@ public class ChessGame {
         }
     }
 
-    // Helper method to check if path is blocked
-    /**
-     * Checks if there are any pieces blocking the path between two positions.
-     * Works for straight lines (rooks/queens) and diagonals (bishops/queens).
-     *
-     * @param start The starting position of the piece
-     * @param end The destination position
-     * @return true if any squares between start and end (exclusive) are occupied
-     */
     private boolean isPathBlocked(ChessPosition start, ChessPosition end) {
         int rowStep = Integer.compare(end.getRow(), start.getRow());
         int colStep = Integer.compare(end.getColumn(), start.getColumn());
@@ -310,13 +273,6 @@ public class ChessGame {
     }
 
     // CASTLING HELPER METHODS START HERE
-
-    /**
-     * Checks if castling is possible in the given direction
-     * @param kingPos Position of the king
-     * @param direction 1 for kingside, -1 for queenside
-     * @return true if castling is allowed
-     */
     private boolean canCastle(ChessPosition kingPos, int direction) {
         ChessPiece king = board.getPiece(kingPos);
         if (king == null || king.hasMoved() || king.getPieceType() != ChessPiece.PieceType.KING ||
@@ -351,9 +307,6 @@ public class ChessGame {
         return true;
     }
 
-    /**
-     * Checks if a square is under attack by opponent pieces
-     */
     private boolean isSquareUnderAttack(ChessPosition position, TeamColor teamColor) {
         TeamColor opponentColor = (teamColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
 
@@ -374,9 +327,6 @@ public class ChessGame {
         return false;
     }
 
-    /**
-     * Executes a castling move
-     */
     private void executeCastle(ChessMove move) throws InvalidMoveException {
         ChessPiece king = board.getPiece(move.getStartPosition());
         if (king == null || king.getPieceType() != ChessPiece.PieceType.KING) {
@@ -422,15 +372,11 @@ public class ChessGame {
         return null; // shouldn't happen in valid game
     }
 
-    /**
-     * Determines if the given team is in check
-     *
-     * @param teamColor which team to check for check
-     * @return True if the specified team is in check
-     */
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPosition = findKingPosition(teamColor);
-        if (kingPosition == null) return false; // shouldn't happen in valid game
+        if (kingPosition == null){
+            return false;
+        }
 
         // Check if any opponent's piece can attack the king
         TeamColor opponentColor = (teamColor == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
@@ -453,12 +399,6 @@ public class ChessGame {
         return false;
     }
 
-    /**
-     * Determines if the given team is in checkmate
-     *
-     * @param teamColor which team to check for checkmate
-     * @return True if the specified team is in checkmate
-     */
     public boolean isInCheckmate(TeamColor teamColor) {
         if (!isInCheck(teamColor)) {
             return false;
@@ -494,13 +434,6 @@ public class ChessGame {
         return true; // No moves get out of check
     }
 
-    /**
-     * Determines if the given team is in stalemate, which here is defined as having
-     * no valid moves
-     *
-     * @param teamColor which team to check for stalemate
-     * @return True if the specified team is in stalemate, otherwise false
-     */
     public boolean isInStalemate(TeamColor teamColor) {
         if (isInCheck(teamColor)) {
             return false; // Can't be stalemate if in check
@@ -536,21 +469,11 @@ public class ChessGame {
         return true; // No valid moves found
     }
 
-    /**
-     * Sets this game's chessboard with a given board
-     *
-     * @param board the new board to use
-     */
     public void setBoard(ChessBoard board) {
         this.board = board;
         this.board.setGame(this);
     }
 
-    /**
-     * Gets the current chessboard
-     *
-     * @return the chessboard
-     */
     public ChessBoard getBoard() {
         return board;
     }

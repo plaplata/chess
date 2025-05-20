@@ -29,15 +29,21 @@ public class GameMemoryStorage implements GameStorage {
     @Override
     public boolean joinGame(int gameID, String username, String color) {
         GameData game = games.get(gameID);
-        if (game == null) return false;
+        if (game == null){
+            return false;
+        }
 
         switch (color.toLowerCase()) {
             case "white":
-                if (game.getWhiteUsername() != null) return false;
+                if (game.getWhiteUsername() != null){
+                    return false;
+                }
                 game.setWhiteUsername(username);
                 return true;
             case "black":
-                if (game.getBlackUsername() != null) return false;
+                if (game.getBlackUsername() != null){
+                    return false;
+                }
                 game.setBlackUsername(username);
                 return true;
             default:
