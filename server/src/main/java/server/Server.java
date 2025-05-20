@@ -2,14 +2,11 @@ package server;
 
 import static spark.Spark.*;
 import com.google.gson.Gson;
-import java.util.HashSet;
-import java.util.Set;
+import dataaccess.UserMemoryStorage;
 
 public class Server {
 
-    public static Set<String> tokens = new HashSet<>();
     public static Gson gson = new Gson();
-    //private static final UserService userService = new UserReg();
 
     public static void main(String[] args) {
         Server server = new Server();
@@ -18,28 +15,34 @@ public class Server {
 
     public int run(int desiredPort) {
         port(desiredPort);
-
         staticFiles.location("web");
 
-        before((request, response) -> {
-            String path = request.pathInfo();
-            if (!path.equals("/user")) {
-                String authToken = request.headers("Authorization");
-                boolean authenticated = authToken != null && tokens.contains(authToken);
-                if (!authenticated) {
-                    halt(401, "You are not welcome here");
-                }
-            }
-        });
+//        // Shared in-memory storage (DAOs)
+//        UserMemoryStorage users = new UserMemoryStorage();
+//        AuthMemoryStorage auths = new AuthMemoryStorage();
+//        GameMemoryStorage games = new GameMemoryStorage();
+//
+//        // Route handlers
+//        UserReg userReg = new UserReg(users, auths);       // Add auth storage
+//        UserLogin userLogin = new UserLogin(users, auths);
+//        UserLogout userLogout = new UserLogout(auths);
+//        GameService gameService = new GameService(games, auths, users);
+//        ClearService clearService = new ClearService(users, auths, games);
+//
+//        // Routes
+//        post("/user", userReg::register);
+//        post("/session", userLogin::login);
+//        delete("/session", userLogout::logout);
+//        post("/game", gameService::createGame);
+//        get("/game", gameService::listGames);
+//        put("/game", gameService::joinGame);
+//        delete("/db", clearService::clearAll);
 
-        post("/user", (request, response) -> UserReg.register(request, response));
-
-        exception(Exception.class, (exception, req, res) -> {
+        exception(Exception.class, (e, req, res) -> {
             res.status(500);
-            res.body("Internal Server Error: " + exception.getMessage());
-
-
+            res.body("Internal Server Error: " + e.getMessage());
         });
+
         return desiredPort;
     }
 
