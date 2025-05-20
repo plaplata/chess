@@ -1,10 +1,8 @@
 package server;
 
-import dataaccess.AuthStorage;
+import dataAccess.AuthStorage;
 import spark.Request;
 import spark.Response;
-
-import java.util.Map;
 
 public class UserLogout {
 

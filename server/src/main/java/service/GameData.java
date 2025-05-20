@@ -1,4 +1,4 @@
-package model;
+package service;
 
 public class GameData {
     private final int gameID;

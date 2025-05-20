@@ -1,6 +1,6 @@
-package dataaccess;
+package dataAccess;
 
-import model.GameData;
+import service.GameData;
 
 import java.util.*;
 

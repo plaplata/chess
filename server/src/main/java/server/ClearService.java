@@ -1,12 +1,10 @@
 package server;
 
-import dataaccess.AuthStorage;
-import dataaccess.GameStorage;
-import dataaccess.UserStorage;
+import dataAccess.AuthStorage;
+import dataAccess.GameStorage;
+import dataAccess.UserStorage;
 import spark.Request;
 import spark.Response;
-
-import java.util.Map;
 
 public class ClearService {
     private final UserStorage users;

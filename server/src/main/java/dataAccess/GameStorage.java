@@ -1,7 +1,7 @@
-package dataaccess;
+package dataAccess;
 
 import java.util.List;
-import model.GameData;
+import service.GameData;
 
 public interface GameStorage {
     int createGame(String gameName, String creatorUsername);

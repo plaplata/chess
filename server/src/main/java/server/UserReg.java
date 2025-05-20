@@ -1,8 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.AuthStorage;
-import dataaccess.UserStorage;
+import dataAccess.AuthStorage;
+import dataAccess.UserStorage;
 import spark.Request;
 import spark.Response;
 

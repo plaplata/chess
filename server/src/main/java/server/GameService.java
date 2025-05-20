@@ -1,9 +1,9 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.AuthStorage;
-import dataaccess.GameStorage;
-import model.GameData;
+import dataAccess.AuthStorage;
+import dataAccess.GameStorage;
+import service.GameData;
 import spark.Request;
 import spark.Response;
 

@@ -3,10 +3,9 @@ package server;
 import static spark.Spark.*;
 
 import com.google.gson.Gson;
-import dataaccess.AuthMemoryStorage;
-import dataaccess.GameMemoryStorage;
-import dataaccess.UserMemoryStorage;
-import server.ClearService;
+import dataAccess.AuthMemoryStorage;
+import dataAccess.GameMemoryStorage;
+import dataAccess.UserMemoryStorage;
 
 import java.util.Collections;
 
