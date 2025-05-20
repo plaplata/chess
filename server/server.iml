@@ -36,6 +36,10 @@
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-client:9.4.31.v20200723" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty.websocket:websocket-servlet:9.4.31.v20200723" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty.websocket:websocket-api:9.4.31.v20200723" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-core:5.10.0" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy:1.14.11" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: net.bytebuddy:byte-buddy-agent:1.14.11" level="project" />
+    <orderEntry type="library" scope="TEST" name="Maven: org.objenesis:objenesis:3.3" level="project" />
     <orderEntry type="library" name="Maven: org.mindrot:jbcrypt:0.4" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.glassfish.tyrus.bundles:tyrus-standalone-client:1.15" level="project" />
     <orderEntry type="module-library">
