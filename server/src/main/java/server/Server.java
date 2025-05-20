@@ -9,7 +9,7 @@ public class Server {
 
     public static Set<String> tokens = new HashSet<>();
     public static Gson gson = new Gson();
-    private static final UserService userService = new UserReg();
+    //private static final UserService userService = new UserReg();
 
     public static void main(String[] args) {
         Server server = new Server();
@@ -32,7 +32,7 @@ public class Server {
             }
         });
 
-        post("/user", (request, response) -> userService.register(request, response));
+        post("/user", (request, response) -> UserReg.register(request, response));
 
         exception(Exception.class, (exception, req, res) -> {
             res.status(500);
