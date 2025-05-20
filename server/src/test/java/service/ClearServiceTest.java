@@ -1,8 +1,8 @@
 package service;
 
-import dataAccess.AuthMemoryStorage;
-import dataAccess.GameMemoryStorage;
-import dataAccess.UserMemoryStorage;
+import dataaccess.AuthMemoryStorage;
+import dataaccess.GameMemoryStorage;
+import dataaccess.UserMemoryStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.ClearService;
@@ -48,7 +48,7 @@ public class ClearServiceTest {
     }
 
     @Test
-    void clearAll_Positive() {
+    void clearAllPositive() {
         DummyRequest request = new DummyRequest();
         DummyResponse response = new DummyResponse();
 

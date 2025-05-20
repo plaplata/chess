@@ -1,4 +1,4 @@
-package dataAccess;
+package dataaccess;
 
 public interface AuthStorage {
     void addToken(String authToken, String username);

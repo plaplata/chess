@@ -1,8 +1,8 @@
 package server;
 
-import dataAccess.AuthStorage;
-import dataAccess.GameStorage;
-import dataAccess.UserStorage;
+import dataaccess.AuthStorage;
+import dataaccess.GameStorage;
+import dataaccess.UserStorage;
 import spark.Request;
 import spark.Response;
 

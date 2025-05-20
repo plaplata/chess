@@ -1,14 +1,12 @@
 package service;
 
-import dataAccess.AuthMemoryStorage;
-import dataAccess.UserMemoryStorage;
+import dataaccess.AuthMemoryStorage;
+import dataaccess.UserMemoryStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.UserLogin;
 import spark.Request;
 import spark.Response;
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -64,7 +62,7 @@ public class UserLoginTest {
     }
 
     @Test
-    void login_Success() {
+    void loginSuccess() {
         // Arrange
         String username = "pablo";
         String password = "secure";
@@ -91,7 +89,7 @@ public class UserLoginTest {
     }
 
     @Test
-    void login_Fail_InvalidCredentials() {
+    void loginFailInvalidCredentials() {
         // Arrange
         userStorage.addUser("alice", "password123", "alice@email.com");
 

@@ -1,7 +1,7 @@
 package service;
 
-import dataAccess.AuthMemoryStorage;
-import dataAccess.GameMemoryStorage;
+import dataaccess.AuthMemoryStorage;
+import dataaccess.GameMemoryStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.GameService;
@@ -74,7 +74,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGame_Success() {
+    void joinGameSuccess() {
         // Arrange
         String username = "charlie";
         String gameName = "TestGame";
@@ -110,7 +110,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGame_TakenColor() {
+    void joinGameTakenColor() {
         // Arrange
         String username1 = "alice";
         String username2 = "bob";
@@ -158,7 +158,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGame_InvalidGameID() {
+    void joinGameInvalidGameID() {
         // Arrange
         String username = "frank";
         String authToken = "auth999";
@@ -195,7 +195,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGame_ColorAlreadyTaken() {
+    void joinGameColorAlreadyTaken() {
         // Arrange
         String gameName = "Clash of Colors";
         String creatorUsername = "alice";
@@ -267,7 +267,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGame_MissingAuth() {
+    void joinGameMissingAuth() {
         // Arrange
         String gameName = "Unauthorized Game";
         String creatorUsername = "host";
@@ -336,7 +336,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void createGame_Success() {
+    void createGameSuccess() {
         // Arrange
         String requestBody = """
         {
@@ -405,7 +405,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void createGame_BadRequest() {
+    void createGameBadRequest() {
         // Arrange: invalid input (empty gameName)
         String requestBody = """
         {
@@ -474,7 +474,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void listGames_Success() {
+    void listGamesSuccess() {
         // Arrange: add two games manually
         gameStorage.createGame("First Game", "alice");
         gameStorage.createGame("Second Game", "bob");

@@ -1,6 +1,6 @@
 package service;
 
-import dataAccess.AuthMemoryStorage;
+import dataaccess.AuthMemoryStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.UserLogout;
@@ -66,7 +66,7 @@ public class UserLogoutTest {
     }
 
     @Test
-    void logout_Success() {
+    void logoutSuccess() {
         // Arrange
         String token = "auth123";
         String username = "alice";
@@ -91,7 +91,7 @@ public class UserLogoutTest {
     }
 
     @Test
-    void logout_InvalidToken() {
+    void logoutInvalidToken() {
         // Arrange
         String token = "invalid-token";
 

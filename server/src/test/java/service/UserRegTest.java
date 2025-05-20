@@ -1,7 +1,7 @@
 package service;
 
-import dataAccess.AuthMemoryStorage;
-import dataAccess.UserMemoryStorage;
+import dataaccess.AuthMemoryStorage;
+import dataaccess.UserMemoryStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.UserReg;
@@ -24,7 +24,7 @@ class UserRegTest {
     }
 
     @Test
-    void registerUser_Success() {
+    void registerUserSuccess() {
         SimpleRequest request = new SimpleRequest("""
             {
               "username": "pablo",
@@ -42,7 +42,7 @@ class UserRegTest {
     }
 
     @Test
-    void registerUser_AlreadyExists() {
+    void registerUserAlreadyExists() {
         userStorage.addUser("pablo", "pass123", "pablo@email.com");
 
         SimpleRequest request = new SimpleRequest("""
