@@ -29,6 +29,11 @@ public class Server {
         UserReg userReg = new UserReg(users);
         ClearService clearService = new ClearService(users, auths, games);
 
+        // User Login
+        UserLogin userLogin = new UserLogin(users, auths);
+        post("/session", userLogin::login);
+
+
         // Register routes
         post("/user", userReg::register);
         delete("/db", (req, res) -> clearService.clearAll(req, res));
