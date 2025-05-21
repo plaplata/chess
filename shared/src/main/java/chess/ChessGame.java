@@ -107,7 +107,7 @@ public class ChessGame {
     private void validatePawnPromotion(ChessMove move, ChessPiece piece) throws InvalidMoveException {
         int promotionRow = (teamTurn == TeamColor.WHITE) ? 8 : 1;
         if (move.getEndPosition().getRow() == promotionRow) {
-            var promotionPiece = move.getPromotionPiece();
+            ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
             if (promotionPiece == null || promotionPiece == ChessPiece.PieceType.PAWN || promotionPiece == ChessPiece.PieceType.KING) {
                 throw new InvalidMoveException("Invalid pawn promotion");
             }
@@ -182,8 +182,9 @@ public class ChessGame {
         testBoard.addPiece(move.getEndPosition(), piece);
         testBoard.addPiece(move.getStartPosition(), null);
 
-        if (move.getPromotionPiece() != null) {
-            testBoard.addPiece(move.getEndPosition(), new ChessPiece(teamTurn, move.getPromotionPiece()));
+        ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
+        if (promotionPiece != null) {
+            testBoard.addPiece(move.getEndPosition(), new ChessPiece(teamTurn, promotionPiece));
         }
 
         ChessGame testGame = new ChessGame();
