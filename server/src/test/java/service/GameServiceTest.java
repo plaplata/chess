@@ -23,52 +23,66 @@ public class GameServiceTest {
         gameService = new GameService(gameStorage, authStorage);
     }
 
-    // Minimal request class
-    static class SimpleRequest extends Request {
+    // Reusable Request class for testing
+    static class TestRequest extends Request {
         private final String auth;
         private final String body;
-        public SimpleRequest(String auth, String body) {
+
+        public TestRequest(String auth, String body) {
             this.auth = auth;
             this.body = body;
         }
+
         @Override
         public String headers(String name) {
-            if ("Authorization".equals(name)) {
-                return auth;
-            }
-            return null;
+            return "Authorization".equals(name) ? auth : null;
         }
+
         @Override
         public String body() {
             return body;
         }
     }
 
-    // Minimal response class
-    static class SimpleResponse extends Response {
-        private int status;
-        private String body;
+    // Reusable Response class for testing
+    static class TestResponse extends Response {
+        private int statusCode;
+        private String responseBody;
+        private String contentType;
+
         @Override
         public void status(int statusCode) {
-            this.status = statusCode;
+            this.statusCode = statusCode;
         }
+
         @Override
         public int status() {
-            return status;
+            return statusCode;
         }
+
         @Override
-        public void body(String value) {
-            this.body = value;
+        public void body(String body) {
+            this.responseBody = body;
         }
+
         @Override
         public String body() {
-            return body;
+            return responseBody;
+        }
+
+        @Override
+        public void type(String contentType) {
+            this.contentType = contentType;
+        }
+
+        @Override
+        public String type() {
+            return contentType;
         }
     }
 
     @Test
     void joinGameSuccess() {
-        // Arrange
         String username = "charlie";
         String gameName = "TestGame";
         String authToken = "auth456";
@@ -82,16 +96,16 @@ public class GameServiceTest {
         }
         """, gameID);
 
-        SimpleRequest request = new SimpleRequest(authToken, requestBody);
-        SimpleResponse response = new SimpleResponse();
-        // Act
+        TestRequest request = new TestRequest(authToken, requestBody);
+        TestResponse response = new TestResponse();
+
         String result = gameService.joinGame(request, response);
-        // Debug
+
         System.out.println("JoinGame Success Debug:");
         System.out.println("- Request Body: " + requestBody);
         System.out.println("- Response: " + result);
         System.out.println("- Status: " + response.status());
-        // Assert
+
         assertEquals(200, response.status(), "Expected HTTP 200 for successful join");
         assertTrue(result.contains("{}"), "Expected empty JSON object");
 
@@ -101,80 +115,71 @@ public class GameServiceTest {
 
     @Test
     void joinGameTakenColor() {
-        // Arrange
         String username1 = "alice";
         String username2 = "bob";
         String authToken1 = "token1";
         String authToken2 = "token2";
-
         int gameID = gameStorage.createGame("ConflictGame", username1);
 
-        // Register both users
         authStorage.addToken(authToken1, username1);
         authStorage.addToken(authToken2, username2);
 
-        // First user joins as BLACK
         String body1 = String.format("""
-    {
-      "gameID": %d,
-      "playerColor": "BLACK"
-    }
-    """, gameID);
-        String body2 = String.format("""
-    {
-      "gameID": %d,
-      "playerColor": "BLACK"
-    }
-    """, gameID);
+        {
+          "gameID": %d,
+          "playerColor": "BLACK"
+        }
+        """, gameID);
 
-        // First join succeeds
-        SimpleRequest req1 = new SimpleRequest(authToken1, body1);
-        SimpleResponse res1 = new SimpleResponse();
+        String body2 = String.format("""
+        {
+          "gameID": %d,
+          "playerColor": "BLACK"
+        }
+        """, gameID);
+
+        TestRequest req1 = new TestRequest(authToken1, body1);
+        TestResponse res1 = new TestResponse();
         gameService.joinGame(req1, res1);
-        // Second join fails due to taken color
-        SimpleRequest req2 = new SimpleRequest(authToken2, body2);
-        SimpleResponse res2 = new SimpleResponse();
+
+        TestRequest req2 = new TestRequest(authToken2, body2);
+        TestResponse res2 = new TestResponse();
         String result = gameService.joinGame(req2, res2);
-        // Debug
+
         System.out.println("JoinGame TakenColor Debug:");
         System.out.println("- Status: " + res2.status());
         System.out.println("- Result: " + result);
-        // Assert
+
         assertEquals(403, res2.status(), "Expected HTTP 403 for taken color");
         assertTrue(result.contains("already taken"), "Expected error about taken spot");
     }
 
     @Test
     void joinGameInvalidGameID() {
-        // Arrange
         String username = "frank";
         String authToken = "auth999";
         authStorage.addToken(authToken, username);
 
-        // Create a valid game and set invalid ID to something way higher
         int validGameID = gameStorage.createGame("ValidGame1", username);
         int invalidGameID = validGameID + 1000;
 
         String body = String.format("""
-    {
-      "gameID": %d,
-      "playerColor": "BLACK"
-    }
-    """, invalidGameID);
+        {
+          "gameID": %d,
+          "playerColor": "BLACK"
+        }
+        """, invalidGameID);
 
-        SimpleRequest request = new SimpleRequest(authToken, body);
-        SimpleResponse response = new SimpleResponse();
+        TestRequest request = new TestRequest(authToken, body);
+        TestResponse response = new TestResponse();
 
-        // Act
         String result = gameService.joinGame(request, response);
 
-        // Debug
         System.out.println("JoinGame InvalidGameID Debug:");
         System.out.println("- Expected Invalid ID: " + invalidGameID);
         System.out.println("- Actual Status: " + response.status());
         System.out.println("- Result: " + result);
 
-        // Assert
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("already taken") || result.contains("invalid"),
                 "Expected error message for invalid game ID");
@@ -183,7 +188,6 @@ public class GameServiceTest {
 
     @Test
     void joinGameColorAlreadyTaken() {
-        // Arrange
         String gameName = "Clash of Colors";
         String creatorUsername = "alice";
         String joiningUsername = "bob";
@@ -195,56 +199,31 @@ public class GameServiceTest {
 
         int gameID = gameStorage.createGame(gameName, creatorUsername);
 
-        // Alice joins as WHITE
         String whiteJoinBody = String.format("""
-    {
-      "gameID": %d,
-      "playerColor": "WHITE"
-    }
-    """, gameID);
-
-        class SimpleRequest extends Request {
-            final String body;
-            final String auth;
-            SimpleRequest(String body, String auth) {
-                this.body = body;
-                this.auth = auth;
-            }
-            @Override public String body() { return body; }
-            @Override public String headers(String name) {
-                return "Authorization".equals(name) ? auth : null;
-            }
+        {
+          "gameID": %d,
+          "playerColor": "WHITE"
         }
+        """, gameID);
 
-        class SimpleResponse extends Response {
-            private int status;
-            private String type;
-            @Override public void status(int statusCode) { this.status = statusCode; }
-            @Override public int status() { return status; }
-            @Override public void type(String contentType) { this.type = contentType; }
-            @Override public String type() { return type; }
-        }
-
-        SimpleRequest whiteRequest = new SimpleRequest(whiteJoinBody, creatorAuth);
-        SimpleResponse whiteResponse = new SimpleResponse();
+        TestRequest whiteRequest = new TestRequest(creatorAuth, whiteJoinBody);
+        TestResponse whiteResponse = new TestResponse();
         gameService.joinGame(whiteRequest, whiteResponse);
 
-        // Bob tries to join as WHITE (already taken)
         String conflictBody = String.format("""
-    {
-      "gameID": %d,
-      "playerColor": "WHITE"
-    }
-    """, gameID);
+        {
+          "gameID": %d,
+          "playerColor": "WHITE"
+        }
+        """, gameID);
 
-        SimpleRequest conflictRequest = new SimpleRequest(conflictBody, joiningAuth);
-        SimpleResponse conflictResponse = new SimpleResponse();
-        // Act
+        TestRequest conflictRequest = new TestRequest(joiningAuth, conflictBody);
+        TestResponse conflictResponse = new TestResponse();
         String result = gameService.joinGame(conflictRequest, conflictResponse);
-        // Debug
+
         System.out.println("JoinGame Conflict Response: " + result);
         System.out.println("Status Code: " + conflictResponse.status());
-        // Assert
+
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("already taken"), "Expected message about color already being taken");
         assertEquals(403, conflictResponse.status(), "Expected HTTP 403 for color conflict");
@@ -252,60 +231,36 @@ public class GameServiceTest {
 
     @Test
     void joinGameMissingAuth() {
-        // Arrange
         String gameName = "Unauthorized Game";
         String creatorUsername = "host";
         int gameID = gameStorage.createGame(gameName, creatorUsername);
 
         String requestBody = String.format("""
-    {
-      "gameID": %d,
-      "playerColor": "BLACK"
-    }
-    """, gameID);
+        {
+          "gameID": %d,
+          "playerColor": "BLACK"
+        }
+        """, gameID);
 
-        // Custom Request with NO Authorization header
         Request request = new Request() {
             @Override
             public String body() {
                 return requestBody;
             }
+
             @Override
             public String headers(String name) {
-                return null; // No token
+                return null;
             }
         };
 
-        // Minimal Response implementation
-        class SimpleResponse extends Response {
-            private int status;
-            private String body;
-            @Override
-            public void status(int statusCode) {
-                this.status = statusCode;
-            }
-            @Override
-            public int status() {
-                return status;
-            }
-            @Override
-            public void body(String body) {
-                this.body = body;
-            }
-            @Override
-            public String body() {
-                return body;
-            }
-        }
-
-        SimpleResponse response = new SimpleResponse();
-        // Act
+        TestResponse response = new TestResponse();
         String result = gameService.joinGame(request, response);
-        // Debug
+
         System.out.println("JoinGame_MissingAuth Debug:");
         System.out.println("- Result: " + result);
         System.out.println("- Status: " + response.status());
-        // Assert
+
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("unauthorized"), "Expected unauthorized error message");
         assertEquals(401, response.status(), "Expected HTTP 401 for missing auth");
@@ -313,61 +268,24 @@ public class GameServiceTest {
 
     @Test
     void createGameSuccess() {
-        // Arrange
         String requestBody = """
         {
           "gameName": "Epic Battle"
         }
-    """;
+        """;
         String authToken = "authToken-xyz";
         String username = "zeus";
         authStorage.addToken(authToken, username);
 
-        // Custom Request and Response
-        Request request = new Request() {
-            @Override
-            public String body() {
-                return requestBody;
-            }
-            @Override
-            public String headers(String header) {
-                if ("Authorization".equals(header)) {
-                    return authToken;
-                }
-                return null;
-            }
-        };
+        TestRequest request = new TestRequest(authToken, requestBody);
+        TestResponse response = new TestResponse();
 
-        class SimpleResponse extends Response {
-            int statusCode;
-            String responseBody;
-
-            @Override
-            public void status(int statusCode) {
-                this.statusCode = statusCode;
-            }
-            @Override
-            public int status() {
-                return statusCode;
-            }
-            @Override
-            public void body(String body) {
-                this.responseBody = body;
-            }
-            @Override
-            public String body() {
-                return responseBody;
-            }
-        }
-
-        SimpleResponse response = new SimpleResponse();
-        // Act
         String result = gameService.createGame(request, response);
-        // Debug
+
         System.out.println("createGame_Success Debug:");
         System.out.println("- Result: " + result);
         System.out.println("- Status: " + response.status());
-        // Assert
+
         assertEquals(200, response.status(), "Expected 200 OK for valid game creation");
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("\"gameID\""), "Response should contain a gameID");
@@ -375,60 +293,24 @@ public class GameServiceTest {
 
     @Test
     void createGameBadRequest() {
-        // Arrange: invalid input (empty gameName)
         String requestBody = """
         {
           "gameName": ""
         }
-    """;
+        """;
         String authToken = "authToken-xyz";
         String username = "hera";
         authStorage.addToken(authToken, username);
 
-        // Custom Request and Response
-        Request request = new Request() {
-            @Override
-            public String body() {
-                return requestBody;
-            }
-            @Override
-            public String headers(String header) {
-                if ("Authorization".equals(header)) {
-                    return authToken;
-                }
-                return null;
-            }
-        };
+        TestRequest request = new TestRequest(authToken, requestBody);
+        TestResponse response = new TestResponse();
 
-        class SimpleResponse extends Response {
-            int statusCode;
-            String responseBody;
-            @Override
-            public void status(int statusCode) {
-                this.statusCode = statusCode;
-            }
-            @Override
-            public int status() {
-                return statusCode;
-            }
-            @Override
-            public void body(String body) {
-                this.responseBody = body;
-            }
-            @Override
-            public String body() {
-                return responseBody;
-            }
-        }
-
-        SimpleResponse response = new SimpleResponse();
-        // Act
         String result = gameService.createGame(request, response);
-        // Debug
+
         System.out.println("createGame_BadRequest Debug:");
         System.out.println("- Result: " + result);
         System.out.println("- Status: " + response.status());
-        // Assert
+
         assertEquals(400, response.status(), "Expected 400 Bad Request for empty game name");
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("Error: bad request"), "Expected bad request message in response");
@@ -436,7 +318,6 @@ public class GameServiceTest {
 
     @Test
     void listGamesSuccess() {
-        // Arrange: add two games manually
         gameStorage.createGame("First Game", "alice");
         gameStorage.createGame("Second Game", "bob");
 
@@ -447,42 +328,17 @@ public class GameServiceTest {
         Request request = new Request() {
             @Override
             public String headers(String name) {
-                if ("Authorization".equals(name)) {
-                    return authToken;
-                }
-                return null;
+                return "Authorization".equals(name) ? authToken : null;
             }
         };
 
-        class SimpleResponse extends Response {
-            int statusCode;
-            String responseBody;
-
-            @Override
-            public void status(int statusCode) {
-                this.statusCode = statusCode;
-            }
-            @Override
-            public int status() {
-                return statusCode;
-            }
-            @Override
-            public void body(String body) {
-                this.responseBody = body;
-            }
-            @Override
-            public String body() {
-                return responseBody;
-            }
-        }
-
-        SimpleResponse response = new SimpleResponse();
+        TestResponse response = new TestResponse();
         String result = gameService.listGames(request, response);
-        // Debug
+
         System.out.println("listGames_Success Debug:");
         System.out.println("- Result: " + result);
         System.out.println("- Status: " + response.status());
-        // Assert
+
         assertEquals(200, response.status(), "Expected HTTP 200 for successful game listing");
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("First Game"), "Expected to find 'First Game' in response");
