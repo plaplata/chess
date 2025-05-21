@@ -103,80 +103,88 @@ public class ChessGame {
         return validMoves;
     }
 
+    // Pawn helper methods for makeMove: validatePawnPromotion, validateEnPassantDiagonalCapture
+    private void validatePawnPromotion(ChessMove move, ChessPiece piece) throws InvalidMoveException {
+        int promotionRow = (teamTurn == TeamColor.WHITE) ? 8 : 1;
+        if (move.getEndPosition().getRow() == promotionRow) {
+            var promotionPiece = move.getPromotionPiece();
+            if (promotionPiece == null || promotionPiece == ChessPiece.PieceType.PAWN || promotionPiece == ChessPiece.PieceType.KING) {
+                throw new InvalidMoveException("Invalid pawn promotion");
+            }
+        }
+    }
+    private void validateEnPassantDiagonalCapture(ChessMove move, ChessPiece targetPiece) throws InvalidMoveException {
+        if (targetPiece != null) return;
+
+        ChessPosition enPassantTarget = board.getGame().getEnPassantTarget();
+        if (enPassantTarget == null || !move.getEndPosition().equals(enPassantTarget)) {
+            throw new InvalidMoveException("Pawns can only move diagonally to capture");
+        }
+    }
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
-        if (piece == null) {
-            throw new InvalidMoveException("No piece at start position");
-        }
-        if (piece.getTeamColor() != teamTurn) {
-            throw new InvalidMoveException("Not your turn");
-        }
+        if (piece == null) throw new InvalidMoveException("No piece at start position");
+        if (piece.getTeamColor() != teamTurn) throw new InvalidMoveException("Not your turn");
+
         if (piece.getPieceType() == ChessPiece.PieceType.KING &&
                 Math.abs(move.getStartPosition().getColumn() - move.getEndPosition().getColumn()) == 2) {
             executeCastle(move);
             return;
         }
+
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
                 Math.abs(move.getStartPosition().getRow() - move.getEndPosition().getRow()) == 2) {
-            int enPassantRow = piece.getTeamColor() == ChessGame.TeamColor.WHITE ?
-                    move.getStartPosition().getRow() + 1 :
-                    move.getStartPosition().getRow() - 1;
+            int enPassantRow = piece.getTeamColor() == TeamColor.WHITE
+                    ? move.getStartPosition().getRow() + 1
+                    : move.getStartPosition().getRow() - 1;
             enPassantTarget = new ChessPosition(enPassantRow, move.getStartPosition().getColumn());
             System.out.println("[DEBUG] En Passant target set at: " + enPassantTarget);
         }
+
         Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
-        boolean isValidMove = false;
-        for (ChessMove validMove : validMoves) {
-            if (validMove.getEndPosition().equals(move.getEndPosition()) &&
-                    (validMove.getPromotionPiece() == move.getPromotionPiece())) {
-                isValidMove = true;
-                break;
-            }
+        boolean isValidMove = validMoves.stream().anyMatch(valid ->
+                valid.getEndPosition().equals(move.getEndPosition()) &&
+                        Objects.equals(valid.getPromotionPiece(), move.getPromotionPiece()));
+
+        if (!isValidMove) throw new InvalidMoveException("Invalid move for this piece");
+
+        if (piece.getPieceType() != ChessPiece.PieceType.KNIGHT &&
+                isPathBlocked(move.getStartPosition(), move.getEndPosition())) {
+            throw new InvalidMoveException("Path is blocked");
         }
-        if (!isValidMove) {
-            throw new InvalidMoveException("Invalid move for this piece");
-        }
-        if (piece.getPieceType() != ChessPiece.PieceType.KNIGHT) {
-            if (isPathBlocked(move.getStartPosition(), move.getEndPosition())) {
-                throw new InvalidMoveException("Path is blocked");
-            }
-        }
+
         ChessPiece targetPiece = board.getPiece(move.getEndPosition());
         if (targetPiece != null && targetPiece.getTeamColor() == teamTurn) {
             throw new InvalidMoveException("Cannot capture your own piece");
         }
+
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN) {
             int promotionRow = (teamTurn == TeamColor.WHITE) ? 8 : 1;
             if (move.getEndPosition().getRow() == promotionRow) {
-                if (move.getPromotionPiece() == null ||
-                        move.getPromotionPiece() == ChessPiece.PieceType.PAWN ||
-                        move.getPromotionPiece() == ChessPiece.PieceType.KING) {
-                    throw new InvalidMoveException("Invalid pawn promotion");
-                }
+                validatePawnPromotion(move, piece);
             }
+
             if (move.getStartPosition().getColumn() != move.getEndPosition().getColumn()) {
-                if (targetPiece == null) {
-                    ChessPosition enPassantTarget = board.getGame().getEnPassantTarget();
-                    if (enPassantTarget == null || !move.getEndPosition().equals(enPassantTarget)) {
-                        throw new InvalidMoveException("Pawns can only move diagonally to capture");
-                    }
-                }
+                validateEnPassantDiagonalCapture(move, targetPiece);
             }
         }
+
         ChessBoard testBoard = new ChessBoard();
         copyBoard(board, testBoard);
         testBoard.addPiece(move.getEndPosition(), piece);
         testBoard.addPiece(move.getStartPosition(), null);
+
         if (move.getPromotionPiece() != null) {
-            testBoard.addPiece(move.getEndPosition(),
-                    new ChessPiece(teamTurn, move.getPromotionPiece()));
+            testBoard.addPiece(move.getEndPosition(), new ChessPiece(teamTurn, move.getPromotionPiece()));
         }
+
         ChessGame testGame = new ChessGame();
         testGame.setBoard(testBoard);
         testGame.setTeamTurn(teamTurn);
         if (testGame.isInCheck(teamTurn)) {
             throw new InvalidMoveException("Move would leave king in check");
         }
+
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
                 move.getStartPosition().getColumn() != move.getEndPosition().getColumn() &&
                 board.getPiece(move.getEndPosition()) == null) {
@@ -184,19 +192,23 @@ public class ChessGame {
             ChessPosition capturedPawnPos = new ChessPosition(capturedPawnRow, move.getEndPosition().getColumn());
             board.addPiece(capturedPawnPos, null);
         }
+
         board.addPiece(move.getEndPosition(), piece);
         board.addPiece(move.getStartPosition(), null);
         piece.setMoved(true);
+
         if (move.getPromotionPiece() != null) {
-            board.addPiece(move.getEndPosition(),
-                    new ChessPiece(teamTurn, move.getPromotionPiece()));
+            board.addPiece(move.getEndPosition(), new ChessPiece(teamTurn, move.getPromotionPiece()));
         }
+
         teamTurn = (teamTurn == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+
         if (!(piece.getPieceType() == ChessPiece.PieceType.PAWN &&
                 Math.abs(move.getStartPosition().getRow() - move.getEndPosition().getRow()) == 2)) {
             enPassantTarget = null;
         }
     }
+
     // Helper method to copy board state
     private void copyBoard(ChessBoard source, ChessBoard destination) {
         for (int row = 1; row <= 8; row++) {
