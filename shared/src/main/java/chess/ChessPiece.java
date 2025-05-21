@@ -107,12 +107,18 @@ public class ChessPiece {
     //Helper method
     private void checkAndAddEnPassantMove(ChessBoard board, ChessPosition myPosition, int direction, int captureCol, Collection<ChessMove> moves) {
         ChessGame game = this.game;
-        if (game == null) return;
+        if (game == null){
+            return;
+        }
 
         ChessPosition enPassantTarget = game.getEnPassantTarget();
-        if (enPassantTarget == null) return;
+        if (enPassantTarget == null){
+            return;
+        }
 
-        if (enPassantTarget.getRow() != myPosition.getRow() + direction || enPassantTarget.getColumn() != captureCol) return;
+        if (enPassantTarget.getRow() != myPosition.getRow() + direction || enPassantTarget.getColumn() != captureCol){
+            return;
+        }
 
         ChessPosition opponentPawnPos = new ChessPosition(myPosition.getRow(), captureCol);
         ChessPiece opponentPawn = board.getPiece(opponentPawnPos);
@@ -183,7 +189,9 @@ public class ChessPiece {
                 // Diagonal captures and En Passant
                 for (int dCol = -1; dCol <= 1; dCol += 2) {
                     int captureCol = myPosition.getColumn() + dCol;
-                    if (captureCol < 1 || captureCol > 8) continue;
+                    if (captureCol < 1 || captureCol > 8){
+                        continue;
+                    }
 
                     ChessPosition diagonal = new ChessPosition(myPosition.getRow() + direction, captureCol);
                     ChessPiece target = board.getPiece(diagonal);
