@@ -114,7 +114,9 @@ public class ChessGame {
         }
     }
     private void validateEnPassantDiagonalCapture(ChessMove move, ChessPiece targetPiece) throws InvalidMoveException {
-        if (targetPiece != null) return;
+        if (targetPiece != null){
+            return;
+        }
 
         ChessPosition enPassantTarget = board.getGame().getEnPassantTarget();
         if (enPassantTarget == null || !move.getEndPosition().equals(enPassantTarget)) {
@@ -123,8 +125,12 @@ public class ChessGame {
     }
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
-        if (piece == null) throw new InvalidMoveException("No piece at start position");
-        if (piece.getTeamColor() != teamTurn) throw new InvalidMoveException("Not your turn");
+        if (piece == null){
+            throw new InvalidMoveException("No piece at start position");
+        }
+        if (piece.getTeamColor() != teamTurn){
+            throw new InvalidMoveException("Not your turn");
+        }
 
         if (piece.getPieceType() == ChessPiece.PieceType.KING &&
                 Math.abs(move.getStartPosition().getColumn() - move.getEndPosition().getColumn()) == 2) {
@@ -146,7 +152,9 @@ public class ChessGame {
                 valid.getEndPosition().equals(move.getEndPosition()) &&
                         Objects.equals(valid.getPromotionPiece(), move.getPromotionPiece()));
 
-        if (!isValidMove) throw new InvalidMoveException("Invalid move for this piece");
+        if (!isValidMove){
+            throw new InvalidMoveException("Invalid move for this piece");
+        }
 
         if (piece.getPieceType() != ChessPiece.PieceType.KNIGHT &&
                 isPathBlocked(move.getStartPosition(), move.getEndPosition())) {
