@@ -7,7 +7,6 @@ import java.util.Objects;
 public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
-
     private ChessGame game;
     private boolean hasMoved = false;
 
@@ -32,9 +31,6 @@ public class ChessPiece {
         this.type = type;
     }
 
-    /**
-     * The various different chess piece options
-     */
     public enum PieceType {
         KING,
         QUEEN,
@@ -47,7 +43,6 @@ public class ChessPiece {
     public ChessGame.TeamColor getTeamColor() {
         return pieceColor;
     }
-
     public PieceType getPieceType() {
         return type;
     }
@@ -81,16 +76,13 @@ public class ChessPiece {
                     //row col
                     int row = myPosition.getRow() + direction[0];
                     int col = myPosition.getColumn() + direction[1];
-
                     //boundary check
                     if(row < 1 || row > 8 || col < 1 || col > 8){
                         continue;
                     }
-
                     //newPosition pieceAtPosition
                     ChessPosition newPosition = new ChessPosition(row,col);
                     ChessPiece pieceAtPosition = board.getPiece(newPosition);
-
                     //move allowed
                     if(pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()){
                         moves.add(new ChessMove(myPosition, newPosition, null));
@@ -107,7 +99,6 @@ public class ChessPiece {
                     //row col
                     int row = myPosition.getRow() + direction[0];
                     int col = myPosition.getColumn() + direction[1];
-
                     //while loop(boundary check)
                     while(row >= 1 && row <= 8 && col >= 1 && col <= 8){
                         //newPosition pieceAtPosition
@@ -121,11 +112,9 @@ public class ChessPiece {
                         if(pieceAtPosition != null){
                             break;
                         }
-
                         //row col - keeps sliding
                         row += direction[0];
                         col += direction[1];
-
                     }
                 }
                 break;
@@ -139,7 +128,6 @@ public class ChessPiece {
                     //row col
                     int row = myPosition.getRow() + direction[0];
                     int col = myPosition.getColumn() + direction[1];
-
                     //while loop(boundary check)
                     while(row >= 1 && row <= 8 && col >= 1 && col <= 8){
                         //newPosition pieceAtPosition
@@ -153,11 +141,9 @@ public class ChessPiece {
                         if(pieceAtPosition != null){
                             break;
                         }
-
                         //row col - keeps sliding
                         row += direction[0];
                         col += direction[1];
-
                     }
                 }
                 break;
@@ -171,7 +157,6 @@ public class ChessPiece {
                     //row col
                     int row = myPosition.getRow() + direction[0];
                     int col = myPosition.getColumn() + direction[1];
-
                     //while loop(boundary check)
                     while(row >= 1 && row <= 8 && col >= 1 && col <= 8){
                         //newPosition pieceAtPosition
@@ -185,11 +170,9 @@ public class ChessPiece {
                         if(pieceAtPosition != null){
                             break;
                         }
-
                         //row col - keeps sliding
                         row += direction[0];
                         col += direction[1];
-
                     }
                 }
                 break;
@@ -203,16 +186,13 @@ public class ChessPiece {
                     //row col
                     int row = myPosition.getRow() + direction[0];
                     int col = myPosition.getColumn() + direction[1];
-
                     //boundary check
                     if (row < 1 || row > 8 || col < 1 || col > 8){
                         continue;
                     }
-
                     //newPosition pieceAtPosition
                     ChessPosition newPosition = new ChessPosition(row, col);
                     ChessPiece pieceAtPosition = board.getPiece(newPosition);
-
                     //move allowed
                     if (pieceAtPosition == null || pieceAtPosition.getTeamColor() != this.getTeamColor()) {
                         moves.add(new ChessMove(myPosition, newPosition, null));
@@ -223,12 +203,10 @@ public class ChessPiece {
                 int direction = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 1 : -1;
                 int startRow = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 2 : 7;
                 int promotionRow = (this.getTeamColor() == ChessGame.TeamColor.WHITE) ? 8 : 1;
-
                 // Single move forward
                 ChessPosition oneForward = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn());
                 if (oneForward.getRow() >= 1 && oneForward.getRow() <= 8 && board.getPiece(oneForward) == null) {
                     addPawnMoveIfValid(board, myPosition, oneForward, promotionRow, moves);
-
                     // Double move from starting row
                     if (myPosition.getRow() == startRow) {
                         ChessPosition twoForward = new ChessPosition(myPosition.getRow() + 2 * direction, myPosition.getColumn());
@@ -237,19 +215,16 @@ public class ChessPiece {
                         }
                     }
                 }
-
                 // Diagonal captures and En Passant
                 for (int dCol = -1; dCol <= 1; dCol += 2) {
                     int captureCol = myPosition.getColumn() + dCol;
                     if (captureCol >= 1 && captureCol <= 8) {
                         ChessPosition diagonal = new ChessPosition(myPosition.getRow() + direction, captureCol);
                         ChessPiece target = board.getPiece(diagonal);
-
                         // Normal capture
                         if (target != null && target.getTeamColor() != this.getTeamColor()) {
                             addPawnMoveIfValid(board, myPosition, diagonal, promotionRow, moves);
                         }
-
                         // En Passant
                         ChessGame game = this.game;
                         if (game != null) {
@@ -272,12 +247,9 @@ public class ChessPiece {
                                 }
                             }
                         }
-
-
                     }
                 }
                 break;
-
         }
         return moves;
     }
@@ -294,7 +266,6 @@ public class ChessPiece {
         ChessPiece that = (ChessPiece) o;
         return pieceColor == that.pieceColor && type == that.type;
     }
-
     @Override
     public int hashCode() {
         return Objects.hash(pieceColor, type);

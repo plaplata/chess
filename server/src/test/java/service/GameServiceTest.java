@@ -27,12 +27,10 @@ public class GameServiceTest {
     static class SimpleRequest extends Request {
         private final String auth;
         private final String body;
-
         public SimpleRequest(String auth, String body) {
             this.auth = auth;
             this.body = body;
         }
-
         @Override
         public String headers(String name) {
             if ("Authorization".equals(name)) {
@@ -40,7 +38,6 @@ public class GameServiceTest {
             }
             return null;
         }
-
         @Override
         public String body() {
             return body;
@@ -51,22 +48,18 @@ public class GameServiceTest {
     static class SimpleResponse extends Response {
         private int status;
         private String body;
-
         @Override
         public void status(int statusCode) {
             this.status = statusCode;
         }
-
         @Override
         public int status() {
             return status;
         }
-
         @Override
         public void body(String value) {
             this.body = value;
         }
-
         @Override
         public String body() {
             return body;
@@ -91,16 +84,13 @@ public class GameServiceTest {
 
         SimpleRequest request = new SimpleRequest(authToken, requestBody);
         SimpleResponse response = new SimpleResponse();
-
         // Act
         String result = gameService.joinGame(request, response);
-
         // Debug
         System.out.println("JoinGame Success Debug:");
         System.out.println("- Request Body: " + requestBody);
         System.out.println("- Response: " + result);
         System.out.println("- Status: " + response.status());
-
         // Assert
         assertEquals(200, response.status(), "Expected HTTP 200 for successful join");
         assertTrue(result.contains("{}"), "Expected empty JSON object");
@@ -141,17 +131,14 @@ public class GameServiceTest {
         SimpleRequest req1 = new SimpleRequest(authToken1, body1);
         SimpleResponse res1 = new SimpleResponse();
         gameService.joinGame(req1, res1);
-
         // Second join fails due to taken color
         SimpleRequest req2 = new SimpleRequest(authToken2, body2);
         SimpleResponse res2 = new SimpleResponse();
         String result = gameService.joinGame(req2, res2);
-
         // Debug
         System.out.println("JoinGame TakenColor Debug:");
         System.out.println("- Status: " + res2.status());
         System.out.println("- Result: " + result);
-
         // Assert
         assertEquals(403, res2.status(), "Expected HTTP 403 for taken color");
         assertTrue(result.contains("already taken"), "Expected error about taken spot");
@@ -252,14 +239,11 @@ public class GameServiceTest {
 
         SimpleRequest conflictRequest = new SimpleRequest(conflictBody, joiningAuth);
         SimpleResponse conflictResponse = new SimpleResponse();
-
         // Act
         String result = gameService.joinGame(conflictRequest, conflictResponse);
-
         // Debug
         System.out.println("JoinGame Conflict Response: " + result);
         System.out.println("Status Code: " + conflictResponse.status());
-
         // Assert
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("already taken"), "Expected message about color already being taken");
@@ -286,7 +270,6 @@ public class GameServiceTest {
             public String body() {
                 return requestBody;
             }
-
             @Override
             public String headers(String name) {
                 return null; // No token
@@ -297,22 +280,18 @@ public class GameServiceTest {
         class SimpleResponse extends Response {
             private int status;
             private String body;
-
             @Override
             public void status(int statusCode) {
                 this.status = statusCode;
             }
-
             @Override
             public int status() {
                 return status;
             }
-
             @Override
             public void body(String body) {
                 this.body = body;
             }
-
             @Override
             public String body() {
                 return body;
@@ -320,15 +299,12 @@ public class GameServiceTest {
         }
 
         SimpleResponse response = new SimpleResponse();
-
         // Act
         String result = gameService.joinGame(request, response);
-
         // Debug
         System.out.println("JoinGame_MissingAuth Debug:");
         System.out.println("- Result: " + result);
         System.out.println("- Status: " + response.status());
-
         // Assert
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("unauthorized"), "Expected unauthorized error message");
@@ -353,7 +329,6 @@ public class GameServiceTest {
             public String body() {
                 return requestBody;
             }
-
             @Override
             public String headers(String header) {
                 if ("Authorization".equals(header)) {
@@ -371,17 +346,14 @@ public class GameServiceTest {
             public void status(int statusCode) {
                 this.statusCode = statusCode;
             }
-
             @Override
             public int status() {
                 return statusCode;
             }
-
             @Override
             public void body(String body) {
                 this.responseBody = body;
             }
-
             @Override
             public String body() {
                 return responseBody;
@@ -389,15 +361,12 @@ public class GameServiceTest {
         }
 
         SimpleResponse response = new SimpleResponse();
-
         // Act
         String result = gameService.createGame(request, response);
-
         // Debug
         System.out.println("createGame_Success Debug:");
         System.out.println("- Result: " + result);
         System.out.println("- Status: " + response.status());
-
         // Assert
         assertEquals(200, response.status(), "Expected 200 OK for valid game creation");
         assertNotNull(result, "Response should not be null");
@@ -422,7 +391,6 @@ public class GameServiceTest {
             public String body() {
                 return requestBody;
             }
-
             @Override
             public String headers(String header) {
                 if ("Authorization".equals(header)) {
@@ -435,22 +403,18 @@ public class GameServiceTest {
         class SimpleResponse extends Response {
             int statusCode;
             String responseBody;
-
             @Override
             public void status(int statusCode) {
                 this.statusCode = statusCode;
             }
-
             @Override
             public int status() {
                 return statusCode;
             }
-
             @Override
             public void body(String body) {
                 this.responseBody = body;
             }
-
             @Override
             public String body() {
                 return responseBody;
@@ -458,15 +422,12 @@ public class GameServiceTest {
         }
 
         SimpleResponse response = new SimpleResponse();
-
         // Act
         String result = gameService.createGame(request, response);
-
         // Debug
         System.out.println("createGame_BadRequest Debug:");
         System.out.println("- Result: " + result);
         System.out.println("- Status: " + response.status());
-
         // Assert
         assertEquals(400, response.status(), "Expected 400 Bad Request for empty game name");
         assertNotNull(result, "Response should not be null");
@@ -501,17 +462,14 @@ public class GameServiceTest {
             public void status(int statusCode) {
                 this.statusCode = statusCode;
             }
-
             @Override
             public int status() {
                 return statusCode;
             }
-
             @Override
             public void body(String body) {
                 this.responseBody = body;
             }
-
             @Override
             public String body() {
                 return responseBody;
@@ -519,20 +477,15 @@ public class GameServiceTest {
         }
 
         SimpleResponse response = new SimpleResponse();
-
-        // Act
         String result = gameService.listGames(request, response);
-
         // Debug
         System.out.println("listGames_Success Debug:");
         System.out.println("- Result: " + result);
         System.out.println("- Status: " + response.status());
-
         // Assert
         assertEquals(200, response.status(), "Expected HTTP 200 for successful game listing");
         assertNotNull(result, "Response should not be null");
         assertTrue(result.contains("First Game"), "Expected to find 'First Game' in response");
         assertTrue(result.contains("Second Game"), "Expected to find 'Second Game' in response");
     }
-
 }

@@ -34,19 +34,6 @@ public class ChessBoard {
         return squares[position.getRow()-1][position.getColumn()-1];
     }
 
-    public boolean isInitialPosition(ChessPosition position, ChessPiece piece) {
-        if (piece.getPieceType() == ChessPiece.PieceType.KING) {
-            return (piece.getTeamColor() == ChessGame.TeamColor.WHITE && position.equals(new ChessPosition(1, 5))) ||
-                    (piece.getTeamColor() == ChessGame.TeamColor.BLACK && position.equals(new ChessPosition(8, 5)));
-        } else if (piece.getPieceType() == ChessPiece.PieceType.ROOK) {
-            return (piece.getTeamColor() == ChessGame.TeamColor.WHITE &&
-                    (position.equals(new ChessPosition(1, 1)) || position.equals(new ChessPosition(1, 8)))) ||
-                    (piece.getTeamColor() == ChessGame.TeamColor.BLACK &&
-                            (position.equals(new ChessPosition(8, 1)) || position.equals(new ChessPosition(8, 8))));
-        }
-        return false;
-    }
-
     public void resetBoard() {
         // Clear the board
         squares = new ChessPiece[8][8];
