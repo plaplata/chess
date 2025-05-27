@@ -1,6 +1,7 @@
 package server;
 
 import dataaccess.AuthStorage;
+import dataaccess.DataAccessException;
 import dataaccess.GameStorage;
 import dataaccess.UserStorage;
 import spark.Request;
@@ -18,11 +19,15 @@ public class ClearService {
     }
 
     public String clearAll(Request req, Response res) {
-        users.clear();
-        auths.clear();
-        games.clear();
-
-        res.status(200);
-        return "{}";
+        try {
+            users.clear();
+            auths.clear();
+            games.clear();
+            res.status(200);
+            return "{}";
+        } catch (DataAccessException e) {
+            res.status(500);
+            return "{\"message\": \"Database error: " + e.getMessage() + "\"}";
+        }
     }
 }

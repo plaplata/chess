@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.AuthStorage;
+import dataaccess.DataAccessException;
 import dataaccess.GameStorage;
 import service.GameData;
 import spark.Request;
@@ -37,10 +38,15 @@ public class GameService {
         }
 
         String username = authStorage.getUsernameByToken(token);
-        int id = gameStorage.createGame(gameName, username);
 
-        res.status(200);
-        return gson.toJson(Map.of("gameID", id));
+        try {
+            int id = gameStorage.createGame(gameName, username);
+            res.status(200);
+            return gson.toJson(Map.of("gameID", id));
+        } catch (DataAccessException e) {
+            res.status(500);
+            return error("database error: " + e.getMessage());
+        }
     }
 
     public String listGames(Request req, Response res) {
@@ -50,9 +56,14 @@ public class GameService {
             return error("unauthorized");
         }
 
-        List<GameData> games = gameStorage.listGames();
-        res.status(200);
-        return gson.toJson(Map.of("games", games));
+        try {
+            List<GameData> games = gameStorage.listGames();
+            res.status(200);
+            return gson.toJson(Map.of("games", games));
+        } catch (DataAccessException e) {
+            res.status(500);
+            return error("database error: " + e.getMessage());
+        }
     }
 
     public String joinGame(Request req, Response res) {
@@ -81,13 +92,18 @@ public class GameService {
         int gameID = idRaw.intValue();
         String username = authStorage.getUsernameByToken(token);
 
-        if (username == null || !gameStorage.joinGame(gameID, username, color)) {
-            res.status(403);
-            return error("already taken or invalid");
-        }
+        try {
+            if (username == null || !gameStorage.joinGame(gameID, username, color)) {
+                res.status(403);
+                return error("already taken or invalid");
+            }
 
-        res.status(200);
-        return "{}";
+            res.status(200);
+            return "{}";
+        } catch (DataAccessException e) {
+            res.status(500);
+            return error("database error: " + e.getMessage());
+        }
     }
 
     private String error(String message) {
