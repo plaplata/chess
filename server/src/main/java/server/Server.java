@@ -3,9 +3,13 @@ package server;
 import static spark.Spark.*;
 
 import com.google.gson.Gson;
+
 import dataaccess.AuthMemoryStorage;
 import dataaccess.GameMemoryStorage;
-import dataaccess.UserMemoryStorage;
+import dataaccess.SQLUserStorage;
+import dataaccess.UserStorage;
+import dataaccess.AuthStorage;
+import dataaccess.GameStorage;
 
 import java.util.Collections;
 
@@ -22,9 +26,10 @@ public class Server {
         port(desiredPort);
         staticFiles.location("/web");
 
-        UserMemoryStorage users = new UserMemoryStorage();
-        AuthMemoryStorage auths = new AuthMemoryStorage();
-        GameMemoryStorage games = new GameMemoryStorage();
+        // Use SQLUserStorage instead of in-memory
+        UserStorage users = new SQLUserStorage();
+        AuthStorage auths = new AuthMemoryStorage(); // Keep using in-memory auth for now
+        GameStorage games = new GameMemoryStorage(); // Swap to SQLGameStorage when ready
 
         // Register services
         UserReg userReg = new UserReg(users, auths);
