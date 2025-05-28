@@ -74,4 +74,44 @@ public class DatabaseManager {
         var port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
     }
+
+    public static void createTablesIfNotExists() throws DataAccessException {
+        createDatabase(); // Ensure the DB itself exists
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // Create users table
+            stmt.executeUpdate("""
+            CREATE TABLE IF NOT EXISTS users (
+                username VARCHAR(50) PRIMARY KEY,
+                passwordHash VARCHAR(255) NOT NULL,
+                email VARCHAR(255)
+            );
+        """);
+
+            // Create games table
+            stmt.executeUpdate("""
+            CREATE TABLE IF NOT EXISTS games (
+                gameID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                gameName VARCHAR(255),
+                whiteUsername VARCHAR(50),
+                blackUsername VARCHAR(50),
+                gameState TEXT
+            );
+        """);
+
+            // Optional: create auth table (for future SQLAuthStorage)
+            stmt.executeUpdate("""
+            CREATE TABLE IF NOT EXISTS auth (
+                authToken VARCHAR(255) PRIMARY KEY,
+                username VARCHAR(50) NOT NULL
+            );
+        """);
+
+        } catch (SQLException ex) {
+            throw new DataAccessException("Failed to create tables", ex);
+        }
+    }
+
 }
