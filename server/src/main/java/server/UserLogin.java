@@ -34,8 +34,7 @@ public class UserLogin {
                 return gson.toJson(Map.of("message", "Error: unauthorized"));
             }
 
-            String authToken = UUID.randomUUID().toString();
-            authStorage.addToken(authToken, user.username);
+            String authToken = authStorage.addToken(user.username);
 
             response.status(200);
             response.type("application/json");

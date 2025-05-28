@@ -35,8 +35,8 @@ public class UserReg {
                 return gson.toJson(Map.of("message", "Error: already taken"));
             }
 
-            String authToken = generateToken();
-            authStorage.addToken(authToken, user.username);
+            String authToken = authStorage.addToken(user.username);
+
 
             response.status(200);
             response.type("application/json");

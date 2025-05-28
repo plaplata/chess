@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.AuthMemoryStorage;
+import dataaccess.DataAccessException;
 import dataaccess.GameMemoryStorage;
 import dataaccess.UserMemoryStorage;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +20,7 @@ public class ClearServiceTest {
     private ClearService clearService;
 
     @BeforeEach
-    void setup() {
+    void setup() throws DataAccessException{
         userStorage = new UserMemoryStorage();
         authStorage = new AuthMemoryStorage();
         gameStorage = new GameMemoryStorage();
@@ -27,7 +28,7 @@ public class ClearServiceTest {
 
         // Add some data to be cleared
         userStorage.addUser("alice", "pass", "alice@example.com");
-        authStorage.addToken("token123", "alice");
+        String token = authStorage.addToken("alice");
         gameStorage.createGame("Game 1", "alice");
     }
 
@@ -48,7 +49,7 @@ public class ClearServiceTest {
     }
 
     @Test
-    void clearAllPositive() {
+    void clearAllPositive() throws DataAccessException {
         DummyRequest request = new DummyRequest();
         DummyResponse response = new DummyResponse();
 

@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.AuthMemoryStorage;
+import dataaccess.DataAccessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import server.UserLogout;
@@ -66,11 +67,11 @@ public class UserLogoutTest {
     }
 
     @Test
-    void logoutSuccess() {
+    void logoutSuccess () throws DataAccessException {
         // Arrange
-        String token = "auth123";
         String username = "alice";
-        authStorage.addToken(token, username);
+        String token = authStorage.addToken(username);
+
 
         Request request = new SimpleRequest(token);
         SimpleResponse response = new SimpleResponse();

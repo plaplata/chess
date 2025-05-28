@@ -2,6 +2,8 @@ package server;
 
 import static spark.Spark.*;
 
+import chess.ChessGame;
+import com.google.gson.GsonBuilder;
 import dataaccess.*;
 import com.google.gson.Gson;
 
@@ -9,7 +11,9 @@ import java.util.Collections;
 
 public class Server {
 
-    public static Gson gson = new Gson();
+    public static Gson gson = new GsonBuilder()
+            .registerTypeAdapter(ChessGame.class, new ChessGameAdapter())
+            .create();
 
     public static void main(String[] args) {
         Server server = new Server();
@@ -17,18 +21,23 @@ public class Server {
     }
 
     public int run(int desiredPort) {
+        boolean useMemory = false;
+        System.out.println("Server using " + (useMemory ? "Memory" : "SQL") + " storage backend.");
+
         port(desiredPort);
         staticFiles.location("/web");
 
-        //old - UserMemoryStorage users = new UserMemoryStorage();
-        UserStorage users = new SQLUserStorage();
+        UserStorage users = useMemory ? new UserMemoryStorage() : new SQLUserStorage();
         try {
             DatabaseManager.createTablesIfNotExists();
         } catch (DataAccessException e) {
             System.err.println("Failed to initialize database tables: " + e.getMessage());
         }
-        AuthMemoryStorage auths = new AuthMemoryStorage();
-        GameMemoryStorage games = new GameMemoryStorage();
+
+        AuthStorage auths = useMemory ? new AuthMemoryStorage() : new SQLAuthStorage();
+
+
+        GameStorage games = useMemory ? new GameMemoryStorage() : new SQLGameStorage();
 
         // Register services
         UserReg userReg = new UserReg(users, auths);
@@ -50,7 +59,7 @@ public class Server {
 
             if (requiresAuth) {
                 String authToken = request.headers("Authorization");
-                if (authToken == null || !auths.isValidToken(authToken)) {
+                if (authToken == null || auths.getToken(authToken) == null) {
                     response.status(401);
                     response.type("application/json");
                     halt(401, new Gson().toJson(Collections.singletonMap("message", "Error: unauthorized")));

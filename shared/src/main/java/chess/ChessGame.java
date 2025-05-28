@@ -12,6 +12,16 @@ public class ChessGame {
     public ChessPosition getEnPassantTarget() { return enPassantTarget; }
     public void setEnPassantTarget(ChessPosition pos) { this.enPassantTarget = pos; }
 
+    public boolean isGameOver() {
+        // Return false by default; replace with actual logic if needed
+        return false;
+    }
+
+    public TeamColor getWinner() {
+        // Return null by default; replace with actual logic if needed
+        return null;
+    }
+
     public ChessGame() {
         this.teamTurn = TeamColor.WHITE; // White plays first
         this.board = new ChessBoard();
