@@ -27,10 +27,10 @@ public class ClearService {
             users.clear();
             auths.clear();
             games.clear();
-            res.status(200);
+            if (res != null) res.status(200);
             return "{}";
         } catch (DataAccessException e) {
-            res.status(500);
+            if (res != null) res.status(500);
             return gson.toJson(Map.of("message", "Database error: " + e.getMessage()));
         }
     }

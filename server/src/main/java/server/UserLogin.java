@@ -27,33 +27,34 @@ public class UserLogin {
 
             if (user.username == null || user.password == null ||
                     user.username.isEmpty() || user.password.isEmpty()) {
-                response.status(400);
+                if (response != null) response.status(400);
                 return gson.toJson(Map.of("message", "Error: bad request"));
             }
 
             try {
                 if (!userStorage.validateCredentials(user.username, user.password)) {
-                    response.status(401);
+                    if (response != null) response.status(401);
                     return gson.toJson(Map.of("message", "Error: unauthorized"));
                 }
             } catch (DataAccessException e) {
-                response.status(500);
+                if (response != null) response.status(500);
                 return gson.toJson(Map.of("message", "Error: database failure"));
             }
 
             String authToken = UUID.randomUUID().toString();
             authStorage.insertToken(new AuthToken(authToken, user.username));
 
-            response.status(200);
-            response.type("application/json");
+            if (response != null) {
+                response.status(200);
+                response.type("application/json");
+            }
             return gson.toJson(new AuthResponse(user.username, authToken));
 
         } catch (Exception e) {
-            response.status(500);
+            if (response != null) response.status(500);
             return gson.toJson(Map.of("message", "Unexpected error: " + e.getMessage()));
         }
     }
-
 
     private static class User {
         String username;
