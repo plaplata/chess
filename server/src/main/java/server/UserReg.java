@@ -43,7 +43,16 @@ public class UserReg {
             }
 
             String authToken = UUID.randomUUID().toString();
-            authStorage.insertToken(new AuthToken(authToken, user.username));
+
+            System.out.println("[DEBUG] Registering user: " + user.username);
+            System.out.println("[DEBUG] Generated token: " + authToken);
+
+            try {
+                authStorage.insertToken(new AuthToken(authToken, user.username));
+            } catch (DataAccessException e) {
+                if (response != null) response.status(500);
+                return gson.toJson(Map.of("message", "Error: database failure"));
+            }
 
             if (response != null) {
                 response.status(200);
@@ -56,6 +65,9 @@ public class UserReg {
             return gson.toJson(Map.of("message", "Unexpected error: " + e.getMessage()));
         }
     }
+
+
+
 
     private static String generateToken() {
         return UUID.randomUUID().toString();

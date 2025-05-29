@@ -8,16 +8,22 @@ public class SQLAuthStorage implements AuthStorage {
 
     @Override
     public void insertToken(AuthToken token) throws DataAccessException {
-        String sql = "INSERT INTO Auth (token, username) VALUES (?, ?)";
+        String sql = "INSERT INTO auth (token, username) VALUES (?, ?)";
+
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            System.out.println("[DEBUG] Inserting token for user: " + token.getUsername());
+
             stmt.setString(1, token.getAuthToken());
             stmt.setString(2, token.getUsername());
             stmt.executeUpdate();
+
         } catch (SQLException e) {
             throw new DataAccessException("Error inserting auth token", e);
         }
     }
+
 
     @Override
     public String addToken(String username) throws DataAccessException {
