@@ -31,8 +31,9 @@ public class ClearService {
             return "{}";
         } catch (DataAccessException e) {
             if (res != null) res.status(500);
-            return gson.toJson(Map.of("message", "Database error: " + e.getMessage()));
+            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
         }
     }
+
 
 }
