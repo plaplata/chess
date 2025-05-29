@@ -167,12 +167,13 @@ public class SQLGameStorage implements GameStorage {
     @Override
     public void clear() throws DataAccessException {
         String sql = "DELETE FROM games";
-
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to clear games: " + e.getMessage());
+            System.err.println("[DEBUG][SQLGameStorage] Failed to clear games: " + e.getMessage());
+            throw new DataAccessException("Error clearing game table", e);
         }
     }
+
 }

@@ -58,12 +58,14 @@ public class SQLAuthStorage implements AuthStorage {
 
     @Override
     public void clear() throws DataAccessException {
-        String sql = "DELETE FROM Auth";
+        String sql = "DELETE FROM auth";
         try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate(sql);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.executeUpdate();
         } catch (SQLException e) {
-            throw new DataAccessException("Error clearing Auth table", e);
+            System.err.println("[DEBUG][SQLAuthStorage] Failed to clear auth: " + e.getMessage());
+            throw new DataAccessException("Error clearing auth table", e);
         }
     }
+
 }

@@ -61,14 +61,15 @@ public class SQLUserStorage implements UserStorage {
 
 
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException {
         String sql = "DELETE FROM users";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
-        } catch (SQLException | DataAccessException e) {
-            System.err.println("Failed to clear users: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("[DEBUG][SQLUserStorage] Failed to clear users: " + e.getMessage());
+            throw new DataAccessException("Error clearing user table", e);
         }
     }
 
