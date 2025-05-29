@@ -10,7 +10,7 @@ import java.sql.SQLException;
 public class SQLUserStorage implements UserStorage {
 
     @Override
-    public boolean addUser(String username, String password, String email) {
+    public boolean addUser(String username, String password, String email) throws DataAccessException{
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         String sql = "INSERT INTO users (username, passwordHash, email) VALUES (?, ?, ?)";
 
@@ -23,15 +23,21 @@ public class SQLUserStorage implements UserStorage {
             stmt.executeUpdate();
             return true;
 
-        } catch (SQLException | DataAccessException e) {
-            System.err.println("Failed to add user: " + e.getMessage());
-            return false;
+        } catch (SQLException e) {
+            // Check if the error is due to duplicate username (SQLState 23000 or MySQL error code 1062)
+            if (e.getSQLState().startsWith("23")) {
+                return false;  // user already exists
+            }
+
+            // Otherwise, it's a real failure
+            throw new DataAccessException("Failed to add user", e);
         }
     }
 
 
+
     @Override
-    public boolean validateCredentials(String username, String password) {
+    public boolean validateCredentials(String username, String password) throws DataAccessException {
         String sql = "SELECT passwordHash FROM users WHERE username = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -45,12 +51,14 @@ public class SQLUserStorage implements UserStorage {
                 return BCrypt.checkpw(password, storedHash);
             }
 
-        } catch (SQLException | DataAccessException e) {
-            System.err.println("Failed to validate user: " + e.getMessage());
-        }
+            return false;  // Username not found
 
-        return false;
+        } catch (SQLException e) {
+            System.err.println("Failed to validate user: " + e.getMessage());
+            throw new DataAccessException("Failed to validate user", e);
+        }
     }
+
 
     @Override
     public void clear() {

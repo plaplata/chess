@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.AuthStorage;
+import dataaccess.DataAccessException;
 import dataaccess.UserStorage;
 import spark.Request;
 import spark.Response;
@@ -30,13 +31,17 @@ public class UserReg {
                 return gson.toJson(Map.of("message", "Error: bad request"));
             }
 
-            if (!userStorage.addUser(user.username, user.password, user.email)) {
-                response.status(403);
-                return gson.toJson(Map.of("message", "Error: already taken"));
+            try {
+                if (!userStorage.addUser(user.username, user.password, user.email)) {
+                    response.status(403);
+                    return gson.toJson(Map.of("message", "Error: already taken"));
+                }
+            } catch (DataAccessException e) {
+                response.status(500);
+                return gson.toJson(Map.of("message", "Error: database failure"));
             }
 
             String authToken = authStorage.addToken(user.username);
-
 
             response.status(200);
             response.type("application/json");
@@ -44,9 +49,10 @@ public class UserReg {
 
         } catch (Exception e) {
             response.status(500);
-            return gson.toJson(Map.of("message", e.getMessage()));
+            return gson.toJson(Map.of("message", "Unexpected error: " + e.getMessage()));
         }
     }
+
 
     private static String generateToken() {
         return UUID.randomUUID().toString();

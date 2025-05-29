@@ -1,9 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.AuthStorage;
-import dataaccess.DataAccessException;
-import dataaccess.GameStorage;
+import dataaccess.*;
 import service.GameData;
 import spark.Request;
 import spark.Response;
@@ -11,19 +9,25 @@ import spark.Response;
 import java.util.List;
 import java.util.Map;
 
+import java.sql.*;
+import com.google.gson.Gson;
+import chess.ChessGame;
+import dataaccess.DataAccessException;
+
+import spark.Request;
+import spark.Response;
+import java.util.Map;
+
+
 public class GameService {
 
     private final GameStorage gameStorage;
     private final AuthStorage authStorage;
     private final Gson gson = Server.gson;
 
-    public GameService(GameStorage gameStorage, AuthStorage authStorage) {
-        this.gameStorage = gameStorage;
-        this.authStorage = authStorage;
-    }
-
     public String createGame(Request req, Response res) {
         String token = req.headers("Authorization");
+
         try {
             if (!authStorage.isValidToken(token)) {
                 res.status(401);
@@ -40,12 +44,19 @@ public class GameService {
 
             String username = authStorage.getUsernameByToken(token);
             int id = gameStorage.createGame(gameName, username);
+
             res.status(200);
             return gson.toJson(Map.of("gameID", id));
         } catch (DataAccessException e) {
             res.status(500);
             return error("database error: " + e.getMessage());
         }
+    }
+
+
+    public GameService(GameStorage gameStorage, AuthStorage authStorage) {
+        this.gameStorage = gameStorage;
+        this.authStorage = authStorage;
     }
 
     public String listGames(Request req, Response res) {

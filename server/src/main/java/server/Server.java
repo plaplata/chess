@@ -8,6 +8,7 @@ import dataaccess.*;
 import com.google.gson.Gson;
 
 import java.util.Collections;
+import java.util.Map;
 
 public class Server {
 
@@ -74,14 +75,39 @@ public class Server {
         delete("/db", (req, res) -> clearService.clearAll(req, res));
 
         // Game-related routes
-        post("/game", gameService::createGame);
-        get("/game", gameService::listGames);
-        put("/game", gameService::joinGame);
+        post("/game", (req, res) -> {
+            try {
+                return gameService.createGame(req, res);
+            } catch (Exception e) {
+                res.status(500);
+                return gson.toJson(Map.of("message", "Error: unexpected failure"));
+            }
+        });
+
+        get("/game", (req, res) -> {
+            try {
+                return gameService.listGames(req, res);
+            } catch (Exception e) {
+                res.status(500);
+                return gson.toJson(Map.of("message", "Error: unexpected failure"));
+            }
+        });
+
+        put("/game", (req, res) -> {
+            try {
+                return gameService.joinGame(req, res);
+            } catch (Exception e) {
+                res.status(500);
+                return gson.toJson(Map.of("message", "Error: unexpected failure"));
+            }
+        });
+
+
 
         // Error handler
         exception(Exception.class, (e, req, res) -> {
             res.status(500);
-            res.body("Internal Server Error: " + e.getMessage());
+            res.body(gson.toJson(Map.of("message", "Error: unexpected failure")));
         });
 
         init();

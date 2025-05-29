@@ -25,35 +25,29 @@ public class SQLGameStorage implements GameStorage {
 
     @Override
     public int createGame(String gameName, String creatorUsername) throws DataAccessException {
-        if (gameName == null || gameName.trim().isEmpty()) {
-            throw new DataAccessException("Game name cannot be null or blank");
-        }
+        String sql = "INSERT INTO games (gameName, whiteUsername, blackUsername, gameState) VALUES (?, ?, ?, ?)";
 
-        System.out.println("Creating game: " + gameName + " for user: " + creatorUsername);
-
-        String sql = "INSERT INTO games (gameName, gameState, whiteUsername, blackUsername) VALUES (?, ?, NULL, NULL)";
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ChessGame newGame = new ChessGame();
-            newGame.getBoard().resetBoard();
-            String gameJson = serializeGame(newGame);
-
             stmt.setString(1, gameName);
-            stmt.setString(2, gameJson);
+            stmt.setString(2, null);
+            stmt.setString(3, null);
+            //stmt.setString(4, new Gson().toJson(new ChessGame()));
+            stmt.setString(4, "{}"); // Placeholder serialized state
 
             stmt.executeUpdate();
 
             try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
+                if (rs.next()) return rs.getInt(1);
+                else throw new SQLException("No ID returned.");
             }
+
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to create game: " + e.getMessage());
+            throw new DataAccessException("Failed to create game", e);
         }
-        return -1;
     }
+
 
 
     @Override
@@ -76,12 +70,11 @@ public class SQLGameStorage implements GameStorage {
             }
 
         } catch (SQLException e) {
-            // Even on failure, return an empty list instead of null
             System.out.println("[ERROR] Failed to list games: " + e.getMessage());
-            throw new DataAccessException("Failed to list games: " + e.getMessage());
+            throw new DataAccessException("Failed to list games", e);  // <-- this change
         }
 
-        return games; // ensure it's never null
+        return games;
     }
 
 
@@ -166,7 +159,7 @@ public class SQLGameStorage implements GameStorage {
             }
 
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to join game: " + e.getMessage());
+            throw new DataAccessException("Failed to join game", e);
         }
     }
 
