@@ -3,6 +3,7 @@ package passoff.server;
 import dataaccess.AuthStorage;
 import dataaccess.SQLAuthStorage;
 import dataaccess.DataAccessException;
+import model.AuthToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -62,4 +63,18 @@ public class SQLAuthStorageDiagnosticTest {
             fail("[FAIL] clear or post-clear check threw DataAccessException: " + e.getMessage());
         }
     }
+
+    @Test
+    public void testAuthInsertDiagnostic() throws DataAccessException {
+        SQLAuthStorage authStorage = new SQLAuthStorage();
+        String token = UUID.randomUUID().toString();
+        String username = "test_user_auth";
+
+        System.out.println("[DEBUG] Attempting to insert token...");
+        authStorage.insertToken(new AuthToken(token, username));
+
+        System.out.println("[DEBUG] Token inserted: " + token);
+        assertTrue(authStorage.isValidToken(token), "Token should be valid after insert");
+    }
+
 }

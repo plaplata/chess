@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.AuthStorage;
 import dataaccess.DataAccessException;
 import dataaccess.UserStorage;
+import model.AuthToken;
 import spark.Request;
 import spark.Response;
 
@@ -40,7 +41,8 @@ public class UserLogin {
                 return gson.toJson(Map.of("message", "Error: database failure"));
             }
 
-            String authToken = authStorage.addToken(user.username);
+            String authToken = UUID.randomUUID().toString();
+            authStorage.insertToken(new AuthToken(authToken, user.username));
 
             response.status(200);
             response.type("application/json");
