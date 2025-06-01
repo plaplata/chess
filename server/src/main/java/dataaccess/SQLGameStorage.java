@@ -107,45 +107,27 @@ public class SQLGameStorage implements GameStorage {
     @Override
     public boolean joinGame(int gameID, String username, String color) throws DataAccessException {
         String query = "SELECT whiteUsername, blackUsername FROM games WHERE gameID = ?";
-        String update = null;
+        String update;
 
-        try (Connection conn = DatabaseManager.getConnection()) {
-            // Step 1: Check current team assignments
-            try (PreparedStatement selectStmt = conn.prepareStatement(query)) {
-                selectStmt.setInt(1, gameID);
-                try (ResultSet rs = selectStmt.executeQuery()) {
-                    if (!rs.next()) {
-                        System.out.println("❌ joinGame: Game " + gameID + " not found");
-                        throw new DataAccessException("Game not found");
-                    }
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement selectStmt = conn.prepareStatement(query)) {
 
-                    String white = rs.getString("whiteUsername");
-                    String black = rs.getString("blackUsername");
-
-                    // 🔍 Debug: show current state
-                    System.out.println("🔍 joinGame request: user=" + username + ", color=" + color + ", gameID=" + gameID);
-                    System.out.println("    Current: white=" + white + ", black=" + black);
-
-                    if (color.equalsIgnoreCase("WHITE")) {
-                        if (white != null) {
-                            System.out.println("❌ white already taken");
-                            throw new DataAccessException("White team already taken");
-                        }
-                        update = "UPDATE games SET whiteUsername = ? WHERE gameID = ?";
-                    } else if (color.equalsIgnoreCase("BLACK")) {
-                        if (black != null) {
-                            System.out.println("❌ black already taken");
-                            throw new DataAccessException("Black team already taken");
-                        }
-                        update = "UPDATE games SET blackUsername = ? WHERE gameID = ?";
-                    } else {
-                        System.out.println("❌ invalid color value: " + color);
-                        throw new DataAccessException("Invalid color: must be WHITE or BLACK");
-                    }
+            selectStmt.setInt(1, gameID);
+            try (ResultSet rs = selectStmt.executeQuery()) {
+                if (!rs.next()) {
+                    System.out.println("❌ joinGame: Game " + gameID + " not found");
+                    throw new DataAccessException("Game not found");
                 }
+
+                String white = rs.getString("whiteUsername");
+                String black = rs.getString("blackUsername");
+
+                System.out.println("🔍 joinGame request: user=" + username + ", color=" + color + ", gameID=" + gameID);
+                System.out.println("    Current: white=" + white + ", black=" + black);
+
+                update = determineUpdateQuery(color, white, black);
             }
 
-            // Step 2: Perform update
             try (PreparedStatement updateStmt = conn.prepareStatement(update)) {
                 updateStmt.setString(1, username);
                 updateStmt.setInt(2, gameID);
@@ -162,6 +144,26 @@ public class SQLGameStorage implements GameStorage {
             throw new DataAccessException("Failed to join game: " + e.getMessage());
         }
     }
+
+    private String determineUpdateQuery(String color, String white, String black) throws DataAccessException {
+        if ("WHITE".equalsIgnoreCase(color)) {
+            if (white != null) {
+                System.out.println("❌ white already taken");
+                throw new DataAccessException("White team already taken");
+            }
+            return "UPDATE games SET whiteUsername = ? WHERE gameID = ?";
+        } else if ("BLACK".equalsIgnoreCase(color)) {
+            if (black != null) {
+                System.out.println("❌ black already taken");
+                throw new DataAccessException("Black team already taken");
+            }
+            return "UPDATE games SET blackUsername = ? WHERE gameID = ?";
+        } else {
+            System.out.println("❌ invalid color value: " + color);
+            throw new DataAccessException("Invalid color: must be WHITE or BLACK");
+        }
+    }
+
 
 
     @Override
