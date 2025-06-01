@@ -3,8 +3,8 @@ package server;
 import com.google.gson.Gson;
 import dataaccess.AuthStorage;
 import dataaccess.DataAccessException;
+import dataaccess.SQLUserStorage;
 import dataaccess.UserStorage;
-import model.AuthToken;
 import spark.Request;
 import spark.Response;
 
@@ -27,34 +27,34 @@ public class UserLogin {
 
             if (user.username == null || user.password == null ||
                     user.username.isEmpty() || user.password.isEmpty()) {
-                if (response != null) response.status(400);
+                response.status(400);
                 return gson.toJson(Map.of("message", "Error: bad request"));
             }
 
-            try {
-                if (!userStorage.validateCredentials(user.username, user.password)) {
-                    if (response != null) response.status(401);
-                    return gson.toJson(Map.of("message", "Error: unauthorized"));
+            if (!userStorage.validateCredentials(user.username, user.password)) {
+                if (userStorage instanceof SQLUserStorage sqlStore && sqlStore.wasConnectionError()) {
+                    response.status(500);
+                    return gson.toJson(Map.of("message", "Error: failed to connect to database"));
                 }
-            } catch (DataAccessException e) {
-                if (response != null) response.status(500);
-                return gson.toJson(Map.of("message", "Error: database failure"));
+
+                response.status(401);
+                return gson.toJson(Map.of("message", "Error: unauthorized"));
             }
+
 
             String authToken = UUID.randomUUID().toString();
-            authStorage.insertToken(new AuthToken(authToken, user.username));
+            authStorage.addToken(authToken, user.username);
 
-            if (response != null) {
-                response.status(200);
-                response.type("application/json");
-            }
+            response.status(200);
+            response.type("application/json");
             return gson.toJson(new AuthResponse(user.username, authToken));
 
-        } catch (Exception e) {
-            if (response != null) response.status(500);
-            return gson.toJson(Map.of("message", "Unexpected error: " + e.getMessage()));
+        } catch (DataAccessException e) {
+            response.status(500);
+            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
         }
     }
+
 
     private static class User {
         String username;
@@ -70,4 +70,5 @@ public class UserLogin {
             this.authToken = authToken;
         }
     }
+
 }

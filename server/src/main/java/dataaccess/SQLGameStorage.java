@@ -2,7 +2,6 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import service.GameData;
 
 import java.sql.*;
@@ -11,42 +10,41 @@ import java.util.List;
 
 public class SQLGameStorage implements GameStorage {
 
-    private final Gson gson = new GsonBuilder()
-            .registerTypeAdapter(ChessGame.class, new ChessGameAdapter())
-            .create();
-
-    private String serializeGame(ChessGame game) {
-        return gson.toJson(game);
-    }
-
-    private ChessGame deserializeGame(String json) {
-        return gson.fromJson(json, ChessGame.class);
-    }
-
     @Override
     public int createGame(String gameName, String creatorUsername) throws DataAccessException {
-        String sql = "INSERT INTO games (gameName, whiteUsername, blackUsername, gameState) VALUES (?, ?, ?, ?)";
+        System.out.println("SQLGameStorage.createGame called");  // LOG: Method was entered
 
+        String sql = "INSERT INTO games (gameName, whiteUsername, blackUsername, gameState) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
+            String gameJson = "{}";  // Avoid cyclic serialization for now
+
             stmt.setString(1, gameName);
-            stmt.setString(2, null);
-            stmt.setString(3, null);
-            //stmt.setString(4, new Gson().toJson(new ChessGame()));
-            stmt.setString(4, "{}"); // Placeholder serialized state
+            stmt.setString(2, null);        // whiteUsername
+            stmt.setString(3, null);        // blackUsername
+            stmt.setString(4, gameJson);    // gameState
 
             stmt.executeUpdate();
 
             try (ResultSet rs = stmt.getGeneratedKeys()) {
-                if (rs.next()) return rs.getInt(1);
-                else throw new SQLException("No ID returned.");
+                if (rs.next()) {
+                    int newID = rs.getInt(1);
+                    System.out.println("Game inserted with ID: " + newID);
+                    return newID;
+                }
             }
-
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to create game", e);
+            System.err.println("Connection error during createGame: " + e.getMessage());
+            if (e.getMessage().toLowerCase().contains("connection")) {
+                throw new DataAccessException("failed to get connection");
+            }
+            throw new DataAccessException("Failed to create game: " + e.getMessage());
         }
+
+        return -1;
     }
+
 
 
 
@@ -70,14 +68,15 @@ public class SQLGameStorage implements GameStorage {
             }
 
         } catch (SQLException e) {
-            System.out.println("[ERROR] Failed to list games: " + e.getMessage());
-            throw new DataAccessException("Failed to list games", e);  // <-- this change
+            System.err.println("Connection error during listGames: " + e.getMessage());
+            if (e.getMessage().toLowerCase().contains("connection")) {
+                throw new DataAccessException("failed to get connection");
+            }
+            throw new DataAccessException("Failed to list games: " + e.getMessage());
         }
 
         return games;
     }
-
-
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
@@ -107,59 +106,60 @@ public class SQLGameStorage implements GameStorage {
 
     @Override
     public boolean joinGame(int gameID, String username, String color) throws DataAccessException {
-        String column = color.equalsIgnoreCase("WHITE") ? "whiteUsername" : "blackUsername";
-
-        String checkSql = "SELECT " + column + ", gameState FROM games WHERE gameID = ?";
-        String updateSql = "UPDATE games SET " + column + " = ?, gameState = ? WHERE gameID = ?";
+        String query = "SELECT whiteUsername, blackUsername FROM games WHERE gameID = ?";
+        String update = null;
 
         try (Connection conn = DatabaseManager.getConnection()) {
-            ChessGame game = null;
-            String currentPlayer = null;
+            // Step 1: Check current team assignments
+            try (PreparedStatement selectStmt = conn.prepareStatement(query)) {
+                selectStmt.setInt(1, gameID);
+                try (ResultSet rs = selectStmt.executeQuery()) {
+                    if (!rs.next()) {
+                        System.out.println("❌ joinGame: Game " + gameID + " not found");
+                        throw new DataAccessException("Game not found");
+                    }
 
-            // Step 1: Check if spot is already taken + load game state
-            try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-                checkStmt.setInt(1, gameID);
-                try (ResultSet rs = checkStmt.executeQuery()) {
-                    if (rs.next()) {
-                        currentPlayer = rs.getString(column);
-                        game = deserializeGame(rs.getString("gameState"));
+                    String white = rs.getString("whiteUsername");
+                    String black = rs.getString("blackUsername");
+
+                    // 🔍 Debug: show current state
+                    System.out.println("🔍 joinGame request: user=" + username + ", color=" + color + ", gameID=" + gameID);
+                    System.out.println("    Current: white=" + white + ", black=" + black);
+
+                    if (color.equalsIgnoreCase("WHITE")) {
+                        if (white != null) {
+                            System.out.println("❌ white already taken");
+                            throw new DataAccessException("White team already taken");
+                        }
+                        update = "UPDATE games SET whiteUsername = ? WHERE gameID = ?";
+                    } else if (color.equalsIgnoreCase("BLACK")) {
+                        if (black != null) {
+                            System.out.println("❌ black already taken");
+                            throw new DataAccessException("Black team already taken");
+                        }
+                        update = "UPDATE games SET blackUsername = ? WHERE gameID = ?";
+                    } else {
+                        System.out.println("❌ invalid color value: " + color);
+                        throw new DataAccessException("Invalid color: must be WHITE or BLACK");
                     }
                 }
             }
 
-            if (game == null) {
-                return false; // No such game
-            }
-
-            // Step 1.5: Check if user is already assigned to opposite color
-            String oppositeColumn = color.equalsIgnoreCase("WHITE") ? "blackUsername" : "whiteUsername";
-            String checkOppositeSql = "SELECT " + oppositeColumn + " FROM games WHERE gameID = ?";
-            String oppositePlayer = null;
-
-            try (PreparedStatement oppStmt = conn.prepareStatement(checkOppositeSql)) {
-                oppStmt.setInt(1, gameID);
-                try (ResultSet oppRs = oppStmt.executeQuery()) {
-                    if (oppRs.next()) {
-                        oppositePlayer = oppRs.getString(oppositeColumn);
-                    }
-                }
-            }
-
-            if (currentPlayer != null) {
-                return false; // Team already taken
-            }
-
-
-            // Step 2: Save updated player and game state
-            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+            // Step 2: Perform update
+            try (PreparedStatement updateStmt = conn.prepareStatement(update)) {
                 updateStmt.setString(1, username);
-                updateStmt.setString(2, serializeGame(game)); // Preserve original game state
-                updateStmt.setInt(3, gameID);
-                return updateStmt.executeUpdate() == 1;
+                updateStmt.setInt(2, gameID);
+                int rowsAffected = updateStmt.executeUpdate();
+                System.out.println("✅ joinGame update: rowsAffected = " + rowsAffected);
+                return rowsAffected == 1;
             }
 
         } catch (SQLException e) {
-            throw new DataAccessException("Failed to join game", e);
+            System.err.println("Connection error during joinGame: " + e.getMessage());
+            if (e.getMessage().toLowerCase().contains("connection")) {
+                throw new DataAccessException("failed to get connection");
+            }
+            throw new DataAccessException("Failed to join game: " + e.getMessage());
         }
     }
 
@@ -167,13 +167,12 @@ public class SQLGameStorage implements GameStorage {
     @Override
     public void clear() throws DataAccessException {
         String sql = "DELETE FROM games";
+
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("[DEBUG][SQLGameStorage] Failed to clear games: " + e.getMessage());
-            throw new DataAccessException("Error clearing game table", e);
+            throw new DataAccessException("Error Failed to clear games: " + e.getMessage());
         }
     }
-
 }

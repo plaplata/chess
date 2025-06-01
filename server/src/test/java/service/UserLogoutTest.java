@@ -1,6 +1,7 @@
 package service;
 
-import dataaccess.AuthMemoryStorage;
+import dataaccess.AuthStorage;
+import dataaccess.SQLAuthStorage;
 import dataaccess.DataAccessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,12 +13,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UserLogoutTest {
 
-    private AuthMemoryStorage authStorage;
+    private AuthStorage authStorage;
     private UserLogout logoutService;
 
     @BeforeEach
-    void setup() {
-        authStorage = new AuthMemoryStorage();
+    void setup() throws DataAccessException {
+        authStorage = new SQLAuthStorage();   // Swap to AuthMemoryStorage if preferred
+        authStorage.clear();                  // Ensure no tokens carry over
         logoutService = new UserLogout(authStorage);
     }
 
@@ -67,11 +69,11 @@ public class UserLogoutTest {
     }
 
     @Test
-    void logoutSuccess () throws DataAccessException {
+    void logoutSuccess() throws DataAccessException {
         // Arrange
+        String token = "auth123";
         String username = "alice";
-        String token = authStorage.addToken(username);
-
+        authStorage.addToken(token, username);
 
         Request request = new SimpleRequest(token);
         SimpleResponse response = new SimpleResponse();
@@ -92,7 +94,7 @@ public class UserLogoutTest {
     }
 
     @Test
-    void logoutInvalidToken() {
+    void logoutInvalidToken() throws DataAccessException{
         // Arrange
         String token = "invalid-token";
 

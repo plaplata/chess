@@ -2,19 +2,14 @@ package server;
 
 import static spark.Spark.*;
 
-import chess.ChessGame;
-import com.google.gson.GsonBuilder;
 import dataaccess.*;
 import com.google.gson.Gson;
 
 import java.util.Collections;
-import java.util.Map;
 
 public class Server {
 
-    public static Gson gson = new GsonBuilder()
-            .registerTypeAdapter(ChessGame.class, new ChessGameAdapter())
-            .create();
+    public static Gson gson = new Gson();
 
     public static void main(String[] args) {
         Server server = new Server();
@@ -22,23 +17,18 @@ public class Server {
     }
 
     public int run(int desiredPort) {
-        boolean useMemory = false;
-        System.out.println("Server using " + (useMemory ? "Memory" : "SQL") + " storage backend.");
-
         port(desiredPort);
         staticFiles.location("/web");
 
-        UserStorage users = useMemory ? new UserMemoryStorage() : new SQLUserStorage();
+        //old - UserMemoryStorage users = new UserMemoryStorage();
+        UserStorage users = new SQLUserStorage();
         try {
             DatabaseManager.createTablesIfNotExists();
         } catch (DataAccessException e) {
             System.err.println("Failed to initialize database tables: " + e.getMessage());
         }
-
-        AuthStorage auths = useMemory ? new AuthMemoryStorage() : new SQLAuthStorage();
-
-
-        GameStorage games = useMemory ? new GameMemoryStorage() : new SQLGameStorage();
+        AuthStorage auths = new SQLAuthStorage();
+        GameStorage games = new SQLGameStorage();
 
         // Register services
         UserReg userReg = new UserReg(users, auths);
@@ -60,7 +50,7 @@ public class Server {
 
             if (requiresAuth) {
                 String authToken = request.headers("Authorization");
-                if (authToken == null || auths.getToken(authToken) == null) {
+                if (authToken == null || !auths.isValidToken(authToken)) {
                     response.status(401);
                     response.type("application/json");
                     halt(401, new Gson().toJson(Collections.singletonMap("message", "Error: unauthorized")));
@@ -75,40 +65,17 @@ public class Server {
         delete("/db", (req, res) -> clearService.clearAll(req, res));
 
         // Game-related routes
-        post("/game", (req, res) -> {
-            try {
-                return gameService.createGame(req, res);
-            } catch (Exception e) {
-                res.status(500);
-                return gson.toJson(Map.of("message", "Error: unexpected failure"));
-            }
-        });
-
-        get("/game", (req, res) -> {
-            try {
-                return gameService.listGames(req, res);
-            } catch (Exception e) {
-                res.status(500);
-                return gson.toJson(Map.of("message", "Error: unexpected failure"));
-            }
-        });
-
-        put("/game", (req, res) -> {
-            try {
-                return gameService.joinGame(req, res);
-            } catch (Exception e) {
-                res.status(500);
-                return gson.toJson(Map.of("message", "Error: unexpected failure"));
-            }
-        });
-
-
+        post("/game", gameService::createGame);
+        get("/game", gameService::listGames);
+        put("/game", gameService::joinGame);
 
         // Error handler
         exception(Exception.class, (e, req, res) -> {
             res.status(500);
-            res.body(gson.toJson(Map.of("message", "Error: unexpected failure")));
+            res.type("application/json");
+            res.body("{\"message\": \"Error: " + e.getMessage().replace("\"", "\\\"") + "\"}");
         });
+
 
         init();
         awaitInitialization();

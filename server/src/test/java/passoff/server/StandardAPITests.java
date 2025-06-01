@@ -11,11 +11,11 @@ import java.util.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class StandardAPITests {
 
-    public static TestUser existingUser;
-    public static TestUser newUser;
-    public static TestCreateRequest createRequest;
-    public static TestServerFacade serverFacade;
-    public static Server server;
+    private static TestUser existingUser;
+    private static TestUser newUser;
+    private static TestCreateRequest createRequest;
+    private static TestServerFacade serverFacade;
+    private static Server server;
     private String existingAuth;
 
     // ### TESTING SETUP/CLEANUP ###
@@ -461,7 +461,7 @@ public class StandardAPITests {
 
     // ### HELPER ASSERTIONS ###
 
-    public void assertHttpOk(TestResult result) {
+    private void assertHttpOk(TestResult result) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, serverFacade.getStatusCode(),
                 "Server response code was not 200 OK (message: %s)".formatted(result.getMessage()));
         Assertions.assertFalse(result.getMessage() != null &&
@@ -473,7 +473,7 @@ public class StandardAPITests {
         assertHttpError(result, HttpURLConnection.HTTP_BAD_REQUEST, "Bad Request");
     }
 
-    public void assertHttpUnauthorized(TestResult result) {
+    private void assertHttpUnauthorized(TestResult result) {
         assertHttpError(result, HttpURLConnection.HTTP_UNAUTHORIZED, "Unauthorized");
     }
 
@@ -481,7 +481,7 @@ public class StandardAPITests {
         assertHttpError(result, HttpURLConnection.HTTP_FORBIDDEN, "Forbidden");
     }
 
-    public void assertHttpError(TestResult result, int statusCode, String message) {
+    private void assertHttpError(TestResult result, int statusCode, String message) {
         Assertions.assertEquals(statusCode, serverFacade.getStatusCode(),
                 "Server response code was not %d %s (message: %s)".formatted(statusCode, message, result.getMessage()));
         Assertions.assertNotNull(result.getMessage(), "Invalid Request didn't return an error message");

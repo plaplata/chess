@@ -9,8 +9,14 @@ import java.sql.SQLException;
 
 public class SQLUserStorage implements UserStorage {
 
+    private boolean lastErrorWasConnectionIssue = false;
+    public boolean wasConnectionError() {
+        return lastErrorWasConnectionIssue;
+    }
+
     @Override
     public boolean addUser(String username, String password, String email) throws DataAccessException{
+        lastErrorWasConnectionIssue = false;
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
         String sql = "INSERT INTO users (username, passwordHash, email) VALUES (?, ?, ?)";
 
@@ -24,17 +30,21 @@ public class SQLUserStorage implements UserStorage {
             return true;
 
         } catch (SQLException e) {
-            // Check if the error is due to duplicate username (SQLState 23000 or MySQL error code 1062)
-            if (e.getSQLState().startsWith("23")) {
-                return false;  // user already exists
+            String msg = e.getMessage().toLowerCase();
+            System.err.println("SQL error during addUser: " + msg);
+
+            // ✅ Handle expected duplication scenario
+            if (msg.contains("duplicate") || msg.contains("unique") || msg.contains("primary")) {
+                return false;  // triggers 403
             }
 
-            // Otherwise, it's a real failure
-            throw new DataAccessException("Failed to add user", e);
+            if (msg.contains("connection")) {
+                lastErrorWasConnectionIssue = true;
+            }
+
+            throw new DataAccessException("Failed to add user: " + e.getMessage());
         }
     }
-
-
 
     @Override
     public boolean validateCredentials(String username, String password) throws DataAccessException {
@@ -44,20 +54,19 @@ public class SQLUserStorage implements UserStorage {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                String storedHash = rs.getString("passwordHash");
-                return BCrypt.checkpw(password, storedHash);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String storedHash = rs.getString("passwordHash");
+                    return BCrypt.checkpw(password, storedHash);
+                }
+                return false;
             }
 
-            return false;  // Username not found
-
         } catch (SQLException e) {
-            System.err.println("Failed to validate user: " + e.getMessage());
-            throw new DataAccessException("Failed to validate user", e);
+            throw new DataAccessException("Error Failed to validate credentials: " + e.getMessage(), e);
         }
     }
+
 
 
     @Override
@@ -68,8 +77,7 @@ public class SQLUserStorage implements UserStorage {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("[DEBUG][SQLUserStorage] Failed to clear users: " + e.getMessage());
-            throw new DataAccessException("Error clearing user table", e);
+            throw new DataAccessException("Error Failed to clear users: " + e.getMessage(), e);
         }
     }
 

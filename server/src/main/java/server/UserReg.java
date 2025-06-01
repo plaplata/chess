@@ -3,8 +3,8 @@ package server;
 import com.google.gson.Gson;
 import dataaccess.AuthStorage;
 import dataaccess.DataAccessException;
+import dataaccess.SQLUserStorage;
 import dataaccess.UserStorage;
-import model.AuthToken;
 import spark.Request;
 import spark.Response;
 
@@ -28,44 +28,33 @@ public class UserReg {
 
             if (user.username == null || user.password == null || user.email == null ||
                     user.username.isEmpty() || user.password.isEmpty() || user.email.isEmpty()) {
-                if (response != null) response.status(400);
+                response.status(400);
                 return gson.toJson(Map.of("message", "Error: bad request"));
             }
 
-            try {
-                if (!userStorage.addUser(user.username, user.password, user.email)) {
-                    if (response != null) response.status(403);
-                    return gson.toJson(Map.of("message", "Error: already taken"));
+            if (!userStorage.addUser(user.username, user.password, user.email)) {
+                // ✅ New logic: Check if it was a DB failure vs. conflict
+                if (userStorage instanceof SQLUserStorage sqlStore && sqlStore.wasConnectionError()) {
+                    response.status(500);
+                    return gson.toJson(Map.of("message", "Error: failed to connect to database"));
                 }
-            } catch (DataAccessException e) {
-                if (response != null) response.status(500);
-                return gson.toJson(Map.of("message", "Error: database failure"));
+
+                response.status(403);
+                return gson.toJson(Map.of("message", "Error: already taken"));
             }
 
-            String authToken = UUID.randomUUID().toString();
+            String authToken = generateToken();
+            authStorage.addToken(authToken, user.username);
 
-            System.out.println("[DEBUG] Registering user: " + user.username);
-            System.out.println("[DEBUG] Generated token: " + authToken);
-
-            try {
-                authStorage.insertToken(new AuthToken(authToken, user.username));
-            } catch (DataAccessException e) {
-                if (response != null) response.status(500);
-                return gson.toJson(Map.of("message", "Error: database failure"));
-            }
-
-            if (response != null) {
-                response.status(200);
-                response.type("application/json");
-            }
+            response.status(200);
+            response.type("application/json");
             return gson.toJson(new AuthResponse(user.username, authToken));
 
         } catch (Exception e) {
-            if (response != null) response.status(500);
-            return gson.toJson(Map.of("message", "Unexpected error: " + e.getMessage()));
+            response.status(500);
+            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
         }
     }
-
 
 
 
@@ -88,4 +77,5 @@ public class UserReg {
             this.authToken = authToken;
         }
     }
+
 }

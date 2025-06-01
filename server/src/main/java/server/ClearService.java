@@ -1,6 +1,6 @@
 package server;
 
-import com.google.gson.Gson;
+
 import dataaccess.AuthStorage;
 import dataaccess.DataAccessException;
 import dataaccess.GameStorage;
@@ -11,7 +11,6 @@ import spark.Response;
 import java.util.Map;
 
 public class ClearService {
-    private final Gson gson = new Gson();
     private final UserStorage users;
     private final AuthStorage auths;
     private final GameStorage games;
@@ -27,13 +26,12 @@ public class ClearService {
             users.clear();
             auths.clear();
             games.clear();
-            if (res != null) res.status(200);
+            res.status(200);
             return "{}";
         } catch (DataAccessException e) {
-            if (res != null) res.status(500);
-            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
+            res.status(500);
+            return "{\"message\": \"Error : " + e.getMessage() + "\"}";
         }
     }
-
 
 }

@@ -86,8 +86,9 @@ public class GameServiceTest {
     void joinGameSuccess() throws DataAccessException {
         String username = "charlie";
         String gameName = "TestGame";
+        String authToken = "auth456";
         int gameID = gameStorage.createGame(gameName, username);
-        String authToken = authStorage.addToken(username);
+        authStorage.addToken(authToken, username);
 
         String requestBody = String.format("""
         {
@@ -114,14 +115,15 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGameTakenColor() throws DataAccessException{
+    void joinGameTakenColor() throws DataAccessException {
         String username1 = "alice";
         String username2 = "bob";
-
-        String authToken1 = authStorage.addToken(username1);
-        String authToken2 = authStorage.addToken(username2);
-
+        String authToken1 = "token1";
+        String authToken2 = "token2";
         int gameID = gameStorage.createGame("ConflictGame", username1);
+
+        authStorage.addToken(authToken1, username1);
+        authStorage.addToken(authToken2, username2);
 
         String body1 = String.format("""
         {
@@ -154,9 +156,10 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGameInvalidGameID() throws DataAccessException{
+    void joinGameInvalidGameID() throws DataAccessException {
         String username = "frank";
-        String authToken = authStorage.addToken(username);
+        String authToken = "auth999";
+        authStorage.addToken(authToken, username);
 
         int validGameID = gameStorage.createGame("ValidGame1", username);
         int invalidGameID = validGameID + 1000;
@@ -185,13 +188,15 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGameColorAlreadyTaken() throws DataAccessException{
+    void joinGameColorAlreadyTaken() throws DataAccessException {
         String gameName = "Clash of Colors";
         String creatorUsername = "alice";
         String joiningUsername = "bob";
-        String creatorAuth = authStorage.addToken(creatorUsername);
-        String joiningAuth = authStorage.addToken(joiningUsername);
+        String creatorAuth = "tokenA";
+        String joiningAuth = "tokenB";
 
+        authStorage.addToken(creatorAuth, creatorUsername);
+        authStorage.addToken(joiningAuth, joiningUsername);
 
         int gameID = gameStorage.createGame(gameName, creatorUsername);
 
@@ -226,7 +231,7 @@ public class GameServiceTest {
     }
 
     @Test
-    void joinGameMissingAuth() {
+    void joinGameMissingAuth() throws DataAccessException {
         String gameName = "Unauthorized Game";
         String creatorUsername = "host";
         int gameID = gameStorage.createGame(gameName, creatorUsername);
@@ -263,15 +268,15 @@ public class GameServiceTest {
     }
 
     @Test
-    void createGameSuccess() throws DataAccessException{
+    void createGameSuccess() throws DataAccessException {
         String requestBody = """
         {
           "gameName": "Epic Battle"
         }
         """;
+        String authToken = "authToken-xyz";
         String username = "zeus";
-        String authToken = authStorage.addToken(username);
-
+        authStorage.addToken(authToken, username);
 
         TestRequest request = new TestRequest(authToken, requestBody);
         TestResponse response = new TestResponse();
@@ -288,15 +293,15 @@ public class GameServiceTest {
     }
 
     @Test
-    void createGameBadRequest() throws DataAccessException{
+    void createGameBadRequest() throws DataAccessException {
         String requestBody = """
         {
           "gameName": ""
         }
         """;
+        String authToken = "authToken-xyz";
         String username = "hera";
-        String authToken = authStorage.addToken(username);
-
+        authStorage.addToken(authToken, username);
 
         TestRequest request = new TestRequest(authToken, requestBody);
         TestResponse response = new TestResponse();
@@ -313,12 +318,13 @@ public class GameServiceTest {
     }
 
     @Test
-    void listGamesSuccess() throws DataAccessException{
+    void listGamesSuccess() throws DataAccessException {
         gameStorage.createGame("First Game", "alice");
         gameStorage.createGame("Second Game", "bob");
 
+        String authToken = "auth-token-xyz";
         String username = "charlie";
-        String authToken = authStorage.addToken(username);
+        authStorage.addToken(authToken, username);
 
         Request request = new Request() {
             @Override

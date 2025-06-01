@@ -1,24 +1,9 @@
 package dataaccess;
 
-import model.AuthToken;
-
 public interface AuthStorage {
-    void insertToken(AuthToken token) throws DataAccessException;
-
-    String addToken(String username) throws DataAccessException;
-
-    AuthToken getToken(String token) throws DataAccessException;
-
-    void deleteToken(String token) throws DataAccessException;
-
+    void addToken(String authToken, String username) throws DataAccessException;
+    boolean isValidToken(String authToken) throws DataAccessException;
+    String getUsernameByToken(String authToken) throws DataAccessException;
+    void removeToken(String authToken) throws DataAccessException;
     void clear() throws DataAccessException;
-
-    default boolean isValidToken(String token) throws DataAccessException {
-        return getToken(token) != null;
-    }
-
-    default String getUsernameByToken(String token) throws DataAccessException {
-        AuthToken t = getToken(token);
-        return t != null ? t.getUsername() : null;
-    }
 }
