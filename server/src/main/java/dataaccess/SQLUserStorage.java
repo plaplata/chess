@@ -31,7 +31,7 @@ public class SQLUserStorage implements UserStorage {
 
         } catch (SQLException e) {
             String msg = e.getMessage().toLowerCase().trim();
-            System.err.println("SQL EXCEPTION: [" + msg + "]");
+            //System.err.println("SQL EXCEPTION: [" + msg + "]");
 
             // ✅ Handle expected duplication scenario
             if (msg.contains("duplicate") || msg.contains("unique") || msg.contains("primary")) {
