@@ -34,9 +34,12 @@ public class UserReg {
 
             if (!userStorage.addUser(user.username, user.password, user.email)) {
                 // ✅ New logic: Check if it was a DB failure vs. conflict
-                if (userStorage instanceof SQLUserStorage sqlStore && sqlStore.wasConnectionError()) {
-                    response.status(500);
-                    return gson.toJson(Map.of("message", "Error: failed to connect to database"));
+                if (userStorage instanceof SQLUserStorage) {
+                    SQLUserStorage sqlStore = (SQLUserStorage) userStorage;
+                    if (sqlStore.wasConnectionError()) {
+                        response.status(500);
+                        return gson.toJson(Map.of("message", "Error: failed to connect to database"));
+                    }
                 }
 
                 response.status(403);
