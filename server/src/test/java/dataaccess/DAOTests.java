@@ -66,7 +66,7 @@ public class DAOTests {
 
     @Test
     @Order(6)
-    public void addToken_And_Validate() throws DataAccessException {
+    public void addTokenAndValidate() throws DataAccessException {
         String token = UUID.randomUUID().toString();
         auths.addToken(token, "userA");
         assertTrue(auths.isValidToken(token));
@@ -74,7 +74,7 @@ public class DAOTests {
 
     @Test
     @Order(7)
-    public void getUsernameByToken_Valid() throws DataAccessException {
+    public void getUsernameByTokenValid() throws DataAccessException {
         String token = UUID.randomUUID().toString();
         auths.addToken(token, "userA");
         assertEquals("userA", auths.getUsernameByToken(token));
@@ -82,14 +82,14 @@ public class DAOTests {
 
     @Test
     @Order(8)
-    public void getUsernameByToken_Invalid() throws DataAccessException {
+    public void getUsernameByTokenInvalid() throws DataAccessException {
         String result = auths.getUsernameByToken("badtoken");
         assertNull(result, "Expected null for nonexistent auth token");
     }
 
     @Test
     @Order(9)
-    public void removeToken_Success() throws DataAccessException {
+    public void removeTokenSuccess() throws DataAccessException {
         String token = UUID.randomUUID().toString();
         auths.addToken(token, "userB");
         auths.removeToken(token);
@@ -108,14 +108,14 @@ public class DAOTests {
 
     @Test
     @Order(11)
-    public void createGame_Success() throws DataAccessException {
+    public void createGameSuccess() throws DataAccessException {
         int id = games.createGame("Match", "creator");
         assertTrue(id > 0);
     }
 
     @Test
     @Order(12)
-    public void joinGame_Success() throws DataAccessException {
+    public void joinGameSuccess() throws DataAccessException {
         int id = games.createGame("M", "c");
         boolean joined = games.joinGame(id, "player", "WHITE");
         assertTrue(joined);
@@ -123,7 +123,7 @@ public class DAOTests {
 
     @Test
     @Order(13)
-    public void joinGame_AlreadyTaken() throws DataAccessException {
+    public void joinGameAlreadyTaken() throws DataAccessException {
         int id = games.createGame("M", "c");
         games.joinGame(id, "one", "WHITE");
         assertThrows(DataAccessException.class, () -> games.joinGame(id, "two", "WHITE"));
