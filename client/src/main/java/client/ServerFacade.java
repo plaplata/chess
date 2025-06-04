@@ -24,6 +24,16 @@ public class ServerFacade {
         return gson.fromJson(responseJson, AuthResponse.class);
     }
 
+    public AuthResponse login(String username, String password) throws IOException {
+        var requestBody = gson.toJson(Map.of(
+                "username", username,
+                "password", password
+        ));
+
+        var responseJson = makeRequest("/session", "POST", requestBody);
+        return gson.fromJson(responseJson, AuthResponse.class);
+    }
+
     private String makeRequest(String endpoint, String method, String body) throws IOException {
         URL url = new URL(serverUrl + endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
