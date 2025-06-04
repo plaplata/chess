@@ -6,6 +6,10 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+        ServerFacade server = new ServerFacade("localhost", 8080);
+        String authToken = null;
+        boolean loggedIn = false;
+
         Scanner scanner = new Scanner(System.in);
         System.out.println("♕ Welcome to 240 Chess Client");
         System.out.println("Type 'help' to see available commands.");
@@ -27,10 +31,10 @@ public class Main {
                     String email = scanner.nextLine();
 
                     try {
-                        var server = new ServerFacade("localhost", 8080); // Change port if needed
                         var response = server.register(username, password, email);
                         System.out.println("✅ Registered and logged in as " + response.username);
-                        // TODO: Transition to post-login UI
+                        authToken = response.authToken;
+                        loggedIn = true;
                     } catch (Exception e) {
                         System.out.println("❌ Registration failed: " + e.getMessage());
                     }
@@ -43,15 +47,30 @@ public class Main {
                     String password = scanner.nextLine();
 
                     try {
-                        var server = new ServerFacade("localhost", 8080); // Adjust if needed
                         var response = server.login(username, password);
                         System.out.println("✅ Logged in as " + response.username);
-                        // TODO: transition to post-login UI
+                        authToken = response.authToken;
+                        loggedIn = true;
                     } catch (Exception e) {
                         System.out.println("❌ Login failed: " + e.getMessage());
                     }
                 }
 
+                case "logout" -> {
+                    if (!loggedIn || authToken == null) {
+                        System.out.println("⚠️  You are not logged in.");
+                        break;
+                    }
+
+                    try {
+                        server.logout(authToken);
+                        System.out.println("✅ Logged out.");
+                        loggedIn = false;
+                        authToken = null;
+                    } catch (Exception e) {
+                        System.out.println("❌ Logout failed: " + e.getMessage());
+                    }
+                }
 
                 case "quit" -> {
                     System.out.println("Goodbye!");
@@ -64,6 +83,7 @@ public class Main {
 
         scanner.close();
     }
+
 
     private static void printHelp() {
         System.out.println("""
