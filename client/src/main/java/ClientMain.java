@@ -92,6 +92,7 @@ public class ClientMain {
                       help     - Show this help message
                       create   - Create a new game
                       list     - View all available games
+                      play     - Join a game as a player
                       logout   - Log out and return to prelogin menu
                 """);
 
@@ -112,6 +113,21 @@ public class ClientMain {
                         }
                     } catch (Exception e) {
                         System.out.println("❌ Failed to list games: " + e.getMessage());
+                    }
+                }
+
+                case "play" -> {
+                    System.out.print("Enter Game ID: ");
+                    int gameID = Integer.parseInt(scanner.nextLine());
+                    System.out.print("Choose color (WHITE or BLACK): ");
+                    String color = scanner.nextLine().trim().toUpperCase();
+
+                    try {
+                        server.joinGame(authToken, gameID, color);
+                        System.out.println("✅ Joined game " + gameID + " as " + color);
+                        // TODO: launch chessboard interface in future milestone
+                    } catch (Exception e) {
+                        System.out.println("❌ Failed to join game: " + e.getMessage());
                     }
                 }
 
