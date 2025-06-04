@@ -83,7 +83,7 @@ public class ClientMain {
     private static String runPostLoginREPL(Scanner scanner, ServerFacade server, String authToken) {
         boolean postLoginRunning = true;
         while (postLoginRunning) {
-            System.out.print("@chess> ");
+            System.out.print("@chess> type 'help' for available commands ");
             String input = scanner.nextLine().trim().toLowerCase();
 
             switch (input) {
@@ -91,8 +91,29 @@ public class ClientMain {
                     Available commands (Postlogin):
                       help     - Show this help message
                       create   - Create a new game
+                      list     - View all available games
                       logout   - Log out and return to prelogin menu
                 """);
+
+                case "list" -> {
+                    try {
+                        var response = server.listGames(authToken);
+                        if (response.games == null || response.games.isEmpty()) {
+                            System.out.println("📭 No games available.");
+                        } else {
+                            System.out.println("🎮 Available Games:");
+                            for (var game : response.games) {
+                                System.out.printf("  [game ID: %d] \"%s\" | White: %s | Black: %s%n",
+                                        game.gameID,
+                                        game.gameName,
+                                        game.whiteUsername != null ? game.whiteUsername : "(empty)",
+                                        game.blackUsername != null ? game.blackUsername : "(empty)");
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println("❌ Failed to list games: " + e.getMessage());
+                    }
+                }
 
                 case "create" -> {
                     System.out.print("Game name: ");
