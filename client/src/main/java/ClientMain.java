@@ -93,6 +93,7 @@ public class ClientMain {
                       create   - Create a new game
                       list     - View all available games
                       play     - Join a game as a player
+                      observe  - Join a game as an observer
                       logout   - Log out and return to prelogin menu
                 """);
 
@@ -131,6 +132,19 @@ public class ClientMain {
                     }
                 }
 
+                case "observe" -> {
+                    System.out.print("Enter Game ID: ");
+                    int gameID = Integer.parseInt(scanner.nextLine());
+
+                    try {
+                        server.joinGame(authToken, gameID, null); // null = observer
+                        System.out.println("👁️ Now observing game " + gameID);
+                        runGameREPL(scanner, server, authToken, gameID, false); // false = not a player
+                    } catch (Exception e) {
+                        System.out.println("❌ Failed to observe game: " + e.getMessage());
+                    }
+                }
+
                 case "create" -> {
                     System.out.print("Game name: ");
                     String gameName = scanner.nextLine();
@@ -157,4 +171,45 @@ public class ClientMain {
         }
         return authToken;
     }
+
+    private static void runGameREPL(Scanner scanner, ServerFacade server, String authToken, int gameID, boolean isPlayer) {
+        System.out.println("🎯 Entered game " + gameID + (isPlayer ? " as a PLAYER" : " as an OBSERVER"));
+
+        boolean inGame = true;
+        while (inGame) {
+            System.out.print("@game> ");
+            String input = scanner.nextLine().trim().toLowerCase();
+
+            switch (input) {
+                case "help" -> {
+                    System.out.println(isPlayer ? """
+                    Game Commands (Player):
+                      help   - Show this help message
+                      leave  - Leave the game and return to lobby
+                      move   - (not implemented)
+                """ : """
+                    Game Commands (Observer):
+                      help   - Show this help message
+                      leave  - Stop observing and return to lobby
+                """);
+                }
+
+                case "leave" -> {
+                    System.out.println("🚪 Leaving game " + gameID + "...");
+                    inGame = false;
+                }
+
+                case "move" -> {
+                    if (!isPlayer) {
+                        System.out.println("⚠️ Observers can't make moves.");
+                    } else {
+                        System.out.println("⏳ Move functionality not implemented yet.");
+                    }
+                }
+
+                default -> System.out.println("Unknown command. Type 'help' for a list of commands.");
+            }
+        }
+    }
+
 }

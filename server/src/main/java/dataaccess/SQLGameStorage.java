@@ -125,6 +125,12 @@ public class SQLGameStorage implements GameStorage {
                 System.out.println("🔍 joinGame request: user=" + username + ", color=" + color + ", gameID=" + gameID);
                 System.out.println("    Current: white=" + white + ", black=" + black);
 
+                // ✅ Observer logic — skip DB update
+                if (color == null) {
+                    System.out.println("👀 " + username + " is observing game " + gameID);
+                    return true;
+                }
+
                 update = determineUpdateQuery(color, white, black);
             }
 
@@ -144,6 +150,7 @@ public class SQLGameStorage implements GameStorage {
             throw new DataAccessException("Failed to join game: " + e.getMessage());
         }
     }
+
 
     private String determineUpdateQuery(String color, String white, String black) throws DataAccessException {
         if ("WHITE".equalsIgnoreCase(color)) {
