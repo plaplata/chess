@@ -34,6 +34,12 @@ public class ServerFacade {
         return gson.fromJson(responseJson, AuthResponse.class);
     }
 
+    public CreateGameResponse createGame(String authToken, String gameName) throws IOException {
+        var requestBody = gson.toJson(Map.of("gameName", gameName));
+        var responseBody = makeRequestWithAuth("/game", "POST", requestBody, authToken);
+        return gson.fromJson(responseBody, CreateGameResponse.class);
+    }
+
     public void logout(String authToken) throws IOException {
         makeRequestWithAuth("/session", "DELETE", null, authToken);
     }
