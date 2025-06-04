@@ -1,9 +1,8 @@
-import chess.*;
 import client.ServerFacade;
 
 import java.util.Scanner;
 
-public class Main {
+public class ClientMain {
 
     public static void main(String[] args) {
         ServerFacade server = new ServerFacade("localhost", 8080);
