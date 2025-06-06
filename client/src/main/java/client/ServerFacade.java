@@ -1,6 +1,8 @@
 package client;
 
 import com.google.gson.Gson;
+import ui.EscapeSequences;
+
 import java.io.*;
 import java.net.*;
 import java.util.Map;
@@ -47,13 +49,72 @@ public class ServerFacade {
         var requestBody = gson.toJson(new JoinGameRequest(gameID, playerColor));
         System.out.println("▶️ Sending join request as player: " + requestBody);
         makeRequestWithAuth("/game", "PUT", requestBody, authToken);
+
+        drawBoard(playerColor); // ✅ Print the board after joining
     }
 
     public void observeGame(String authToken, int gameID) throws IOException {
         var requestBody = gson.toJson(new JoinGameRequest(gameID, "OBSERVER"));
         System.out.println("👁️ Sending join request as observer: " + requestBody);
         makeRequestWithAuth("/game", "PUT", requestBody, authToken);
+
+        drawBoard("WHITE"); // ✅ Print the board after observing
     }
+
+    private void drawBoard(String perspective) {
+        final String light = EscapeSequences.SET_BG_COLOR_LIGHT_PEACH;
+        final String dark = EscapeSequences.SET_BG_COLOR_TEAL_GREEN;
+        final String reset = EscapeSequences.RESET_FORMATTING;
+
+        String[][] board = {
+                {EscapeSequences.BLACK_ROOK, EscapeSequences.BLACK_KNIGHT, EscapeSequences.BLACK_BISHOP, EscapeSequences.BLACK_KING,
+                        EscapeSequences.BLACK_QUEEN, EscapeSequences.BLACK_BISHOP, EscapeSequences.BLACK_KNIGHT, EscapeSequences.BLACK_ROOK},
+                {EscapeSequences.BLACK_PAWN, EscapeSequences.BLACK_PAWN, EscapeSequences.BLACK_PAWN, EscapeSequences.BLACK_PAWN,
+                        EscapeSequences.BLACK_PAWN, EscapeSequences.BLACK_PAWN, EscapeSequences.BLACK_PAWN, EscapeSequences.BLACK_PAWN},
+                {EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY,
+                        EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY},
+                {EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY,
+                        EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY},
+                {EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY,
+                        EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY},
+                {EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY,
+                        EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY, EscapeSequences.EMPTY},
+                {EscapeSequences.WHITE_PAWN, EscapeSequences.WHITE_PAWN, EscapeSequences.WHITE_PAWN, EscapeSequences.WHITE_PAWN,
+                        EscapeSequences.WHITE_PAWN, EscapeSequences.WHITE_PAWN, EscapeSequences.WHITE_PAWN, EscapeSequences.WHITE_PAWN},
+                {EscapeSequences.WHITE_ROOK, EscapeSequences.WHITE_KNIGHT, EscapeSequences.WHITE_BISHOP, EscapeSequences.WHITE_KING,
+                        EscapeSequences.WHITE_QUEEN, EscapeSequences.WHITE_BISHOP, EscapeSequences.WHITE_KNIGHT, EscapeSequences.WHITE_ROOK}
+        };
+
+        //convoluted but works
+        boolean isWhitePerspective = !"WHITE".equalsIgnoreCase(perspective);
+
+        System.out.println();
+
+        for (int displayRow = 0; displayRow < 8; displayRow++) {
+            int boardRow = isWhitePerspective ? 7 - displayRow : displayRow;
+            int rank = isWhitePerspective ? displayRow + 1 : 8 - displayRow;
+
+            System.out.print(" " + rank + " ");
+
+            for (int displayCol = 0; displayCol < 8; displayCol++) {
+                int boardCol = isWhitePerspective ? displayCol : 7 - displayCol;
+
+                boolean isLight = (boardRow + boardCol) % 2 != 0;
+                String bg = isLight ? light : dark;
+
+                System.out.print(bg + board[boardRow][boardCol] + reset);
+            }
+            System.out.println();
+        }
+
+        System.out.print("   ");
+        for (int col = 0; col < 8; col++) {
+            char file = (char) ('a' + (!isWhitePerspective ? col : 7 - col));
+            System.out.print(" " + file + " ");
+        }
+        System.out.println("\n");
+    }
+
 
     public CreateGameResponse createGame(String authToken, String gameName) throws IOException {
         var requestBody = gson.toJson(Map.of("gameName", gameName));
