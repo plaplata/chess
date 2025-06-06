@@ -5,6 +5,7 @@ import client.AuthResponse;
 import java.util.Scanner;
 
 public class ClientMain {
+    //had to change name for IDE to run mains from server and client
 
     public static void main(String[] args) {
         ServerFacade server = new ServerFacade("localhost", 8080);
