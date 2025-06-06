@@ -125,11 +125,12 @@ public class SQLGameStorage implements GameStorage {
                 System.out.println("🔍 joinGame request: user=" + username + ", color=" + color + ", gameID=" + gameID);
                 System.out.println("    Current: white=" + white + ", black=" + black);
 
+                //newer block
                 // ✅ Observer logic — skip DB update
-                if (color == null) {
-                    System.out.println("👀 " + username + " is observing game " + gameID);
-                    return true;
-                }
+//                if (color == null) {
+//                    System.out.println("👀 " + username + " is observing game " + gameID);
+//                    return true;
+//                }
 
                 update = determineUpdateQuery(color, white, black);
             }

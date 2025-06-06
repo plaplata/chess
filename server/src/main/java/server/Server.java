@@ -67,7 +67,10 @@ public class Server {
         // Game-related routes
         post("/game", gameService::createGame);
         get("/game", gameService::listGames);
-        put("/game/join", gameService::joinGame);
+        //old line
+        put("/game", gameService::joinGame);
+        //newer line - breaks APITests
+        //put("/game/join", gameService::joinGame);
 
         // Error handler
         exception(Exception.class, (e, req, res) -> {

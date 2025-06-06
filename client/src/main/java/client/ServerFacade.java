@@ -42,7 +42,12 @@ public class ServerFacade {
     public void joinGame(String authToken, int gameID, String playerColor) throws IOException {
         var requestBody = gson.toJson(new JoinGameRequest(gameID, playerColor));
         System.out.println("▶️  Sending join request: " + requestBody); // DEBUG LINE
-        makeRequestWithAuth("/game/join", "PUT", requestBody, authToken);
+        // endpoint "/game/join" would need to match with the one on Server.java
+        // at this time Server.java has endpoint "/game/", if changed APITests fail
+        // so now join game as player does not work for player or observer
+        //makeRequestWithAuth("/game/join", "PUT", requestBody, authToken);
+        //fix line - testing
+        makeRequestWithAuth("/game/", "PUT", requestBody, authToken);
     }
 
 

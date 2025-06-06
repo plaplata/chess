@@ -87,7 +87,7 @@ public class GameService {
             String color = (String) body.get("playerColor");
             Double idRaw = (Double) body.get("gameID");
 
-            if (idRaw == null) {
+            if (color == null || idRaw == null) {
                 res.status(400);
                 return error("bad request");
             }
@@ -99,6 +99,20 @@ public class GameService {
                     res.status(400);
                     return error("bad request");
                 }
+
+            //newer code
+//            if (idRaw == null) {
+//                res.status(400);
+//                return error("bad request");
+//            }
+//
+//            // Normalize and validate color if present
+//            if (color != null) {
+//                color = color.toUpperCase();
+//                if (!color.equals("WHITE") && !color.equals("BLACK")) {
+//                    res.status(400);
+//                    return error("bad request");
+//                }
             }
 
             int gameID = idRaw.intValue();
