@@ -1,6 +1,10 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dataaccess.AuthStorage;
 import dataaccess.DataAccessException;
 import dataaccess.GameStorage;
@@ -83,33 +87,50 @@ public class GameService {
                 return error("unauthorized");
             }
 
-            Map<String, Object> body = gson.fromJson(req.body(), Map.class);
-            String color = (String) body.get("playerColor");
-            Double idRaw = (Double) body.get("gameID");
+            String rawJson = req.body();
+            JsonObject json = JsonParser.parseString(rawJson).getAsJsonObject();
 
-            if (color == null || idRaw == null) {
+            // Validate gameID
+            if (!json.has("gameID") || json.get("gameID").isJsonNull()) {
                 res.status(400);
                 return error("bad request");
             }
+            int gameID = json.get("gameID").getAsInt();
 
-            // Normalize and validate color if present
-            if (color != null) {
-                color = color.toUpperCase();
-                if (!color.equals("WHITE") && !color.equals("BLACK")) {
-                    res.status(400);
-                    return error("bad request");
-                }
-
-            }
-
-            int gameID = idRaw.intValue();
             String username = authStorage.getUsernameByToken(token);
             if (username == null) {
                 res.status(401);
                 return error("unauthorized");
             }
 
-            boolean joined = gameStorage.joinGame(gameID, username, color);
+            // ✅ Reject missing playerColor field (MUST BE PRESENT!)
+            if (!json.has("playerColor") || json.get("playerColor").isJsonNull()) {
+                res.status(400);
+                return error("bad request");
+            }
+
+            String colorStr = json.get("playerColor").getAsString().trim();
+            if (colorStr.isEmpty()) {
+                res.status(400);
+                return error("bad request");
+            }
+
+            ChessGame.TeamColor teamColor;
+            try {
+                teamColor = ChessGame.TeamColor.valueOf(colorStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                res.status(400);
+                return error("bad request");
+            }
+
+            // ✅ Accept OBSERVER requests
+            if (teamColor == ChessGame.TeamColor.OBSERVER) {
+                res.status(200);
+                return "{}";
+            }
+
+            // ✅ Join as WHITE or BLACK
+            boolean joined = gameStorage.joinGame(gameID, username, teamColor.name());
             if (!joined) {
                 res.status(403);
                 return error("already taken or invalid");
@@ -123,7 +144,6 @@ public class GameService {
                 res.status(403);
                 return error("team already taken");
             }
-
             res.status(500);
             return error("Error: " + e.getMessage());
         }

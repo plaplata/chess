@@ -152,7 +152,7 @@ public class ClientMain {
             System.out.print("Enter Game ID: ");
             int gameID = Integer.parseInt(scanner.nextLine());
 
-            server.joinGame(authToken, gameID, null);
+            server.observeGame(authToken, gameID);
             System.out.println("👁️ Now observing game " + gameID);
             runGameREPL(scanner, server, authToken, gameID, false);
         } catch (Exception e) {

@@ -40,16 +40,20 @@ public class ServerFacade {
     }
 
     public void joinGame(String authToken, int gameID, String playerColor) throws IOException {
+        if (!"WHITE".equalsIgnoreCase(playerColor) && !"BLACK".equalsIgnoreCase(playerColor)) {
+            throw new IllegalArgumentException("Player color must be 'WHITE' or 'BLACK'");
+        }
+
         var requestBody = gson.toJson(new JoinGameRequest(gameID, playerColor));
-        System.out.println("▶️  Sending join request: " + requestBody); // DEBUG LINE
-        // endpoint "/game/join" would need to match with the one on Server.java
-        // at this time Server.java has endpoint "/game/", if changed APITests fail
-        // so now join game as player does not work for player or observer
-        //makeRequestWithAuth("/game/join", "PUT", requestBody, authToken);
-        //fix line - testing
-        makeRequestWithAuth("/game/", "PUT", requestBody, authToken);
+        System.out.println("▶️ Sending join request as player: " + requestBody);
+        makeRequestWithAuth("/game", "PUT", requestBody, authToken);
     }
 
+    public void observeGame(String authToken, int gameID) throws IOException {
+        var requestBody = gson.toJson(new JoinGameRequest(gameID, "OBSERVER"));
+        System.out.println("👁️ Sending join request as observer: " + requestBody);
+        makeRequestWithAuth("/game", "PUT", requestBody, authToken);
+    }
 
     public CreateGameResponse createGame(String authToken, String gameName) throws IOException {
         var requestBody = gson.toJson(Map.of("gameName", gameName));

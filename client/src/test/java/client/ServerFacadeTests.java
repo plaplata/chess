@@ -91,21 +91,44 @@ public class ServerFacadeTests {
         });
     }
 
-    //joinGamePositive here
+    @Test
+    public void joinGamePositive() throws IOException {
+        String username = uniqueUser + "5";
+        AuthResponse res = facade.register(username, "pass123", username + "@mail.com");
+        CreateGameResponse gameRes = facade.createGame(res.authToken, "JoinGame");
+        facade.joinGame(res.authToken, gameRes.gameID, "WHITE");
+    }
 
     @Test
     public void joinGameNegative() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            String username = uniqueUser + "5n";
+            AuthResponse res = facade.register(username, "pass123", username + "@mail.com");
+            CreateGameResponse gameRes = facade.createGame(res.authToken, "InvalidColorGame");
+            facade.joinGame(res.authToken, gameRes.gameID, "GREEN");
+        });
+    }
+
+    @Test
+    public void observeGamePositive() throws IOException {
+        String username = uniqueUser + "6";
+        AuthResponse res = facade.register(username, "pass123", username + "@mail.com");
+        CreateGameResponse gameRes = facade.createGame(res.authToken, "ObserveGame");
+        facade.observeGame(res.authToken, gameRes.gameID);
+    }
+
+    @Test
+    public void observeGameNegative() {
         assertThrows(IOException.class, () -> {
-            facade.joinGame("invalid_token", 9999, "BLACK");
+            facade.observeGame("invalid_token", 999);
         });
     }
 
     @Test
     public void logoutPositive() throws IOException {
-        String username = uniqueUser + "6";
+        String username = uniqueUser + "7";
         AuthResponse res = facade.register(username, "pass123", username + "@mail.com");
         facade.logout(res.authToken);
-        // No exception = pass
     }
 
     @Test
