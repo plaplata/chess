@@ -91,7 +91,9 @@ public class ClientMain {
                 case "observe" -> handleObserve(scanner, server, authToken);
                 case "create" -> handleCreate(scanner, server, authToken);
                 case "logout" -> {
-                    if (handleLogout(server, authToken)) return null;
+                    if (handleLogout(server, authToken)){
+                        return null;
+                    }
                 }
                 default -> System.out.println("Unknown command. Type 'help' for a list of commands.");
             }
