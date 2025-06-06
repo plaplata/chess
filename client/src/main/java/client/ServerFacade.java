@@ -61,50 +61,24 @@ public class ServerFacade {
         makeRequestWithAuth("/session", "DELETE", null, authToken);
     }
 
+    private String makeRequest(String endpoint, String method, String body) throws IOException {
+        return makeRequestWithAuth(endpoint, method, body, null);
+    }
+
     private String makeRequestWithAuth(String endpoint, String method, String body, String authToken) throws IOException {
         URL url = new URL(serverUrl + endpoint);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod(method);
         connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("Authorization", authToken);
+        if (authToken != null) {
+            connection.setRequestProperty("Authorization", authToken);
+        }
         connection.setDoOutput(true);
 
         if (body != null) {
             try (var os = connection.getOutputStream()) {
                 os.write(body.getBytes());
             }
-        }
-
-        var responseCode = connection.getResponseCode();
-        InputStream responseStream = (responseCode >= 200 && responseCode < 300)
-                ? connection.getInputStream()
-                : connection.getErrorStream();
-
-        try (var reader = new BufferedReader(new InputStreamReader(responseStream))) {
-            var responseBuilder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                responseBuilder.append(line);
-            }
-
-            if (responseCode >= 400) {
-                throw new IOException("Server returned error: " + responseBuilder);
-            }
-
-            return responseBuilder.toString();
-        }
-    }
-
-
-    private String makeRequest(String endpoint, String method, String body) throws IOException {
-        URL url = new URL(serverUrl + endpoint);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod(method);
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setDoOutput(true);
-
-        try (var os = connection.getOutputStream()) {
-            os.write(body.getBytes());
         }
 
         var responseCode = connection.getResponseCode();
