@@ -145,7 +145,7 @@ public class GameService {
                 return error("team already taken");
             }
             res.status(500);
-            return error("Error: " + e.getMessage());
+            return error(e.getMessage());
         }
     }
 
