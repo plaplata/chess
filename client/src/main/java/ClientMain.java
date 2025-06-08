@@ -49,7 +49,7 @@ public class ClientMain {
                         authToken = response.authToken;
                         loggedIn = true;
                     } catch (Exception e) {
-                        System.out.println("\u274C Login failed: " + e.getMessage());
+                        System.out.println("\u274C Login failed. " + e.getMessage());
                     }
                 } else if (input.equals("quit")) {
                     System.out.println("Goodbye!");
@@ -129,7 +129,7 @@ public class ClientMain {
                         game.blackUsername != null ? game.blackUsername : "(empty)");
             }
         } catch (Exception e) {
-            System.out.println("❌ Failed to list games: " + e.getMessage());
+            System.out.println("❌ Failed to list games. " + e.getMessage());
         }
     }
 
@@ -143,7 +143,7 @@ public class ClientMain {
             server.joinGame(authToken, gameID, color);
             System.out.println("✅ Joined game " + gameID + " as " + color);
         } catch (Exception e) {
-            System.out.println("❌ Failed to join game: " + e.getMessage());
+            System.out.println("❌ Failed to join game. " + e.getMessage());
         }
     }
 
@@ -156,7 +156,7 @@ public class ClientMain {
             System.out.println("👁️ Now observing game " + gameID);
             runGameREPL(scanner, server, authToken, gameID, false);
         } catch (Exception e) {
-            System.out.println("❌ Failed to observe game: " + e.getMessage());
+            System.out.println("❌ Failed to observe game. " + e.getMessage());
         }
     }
 
@@ -168,7 +168,7 @@ public class ClientMain {
             var response = server.createGame(authToken, gameName);
             System.out.println("✅ Game '" + gameName + "' created with ID: " + response.gameID);
         } catch (Exception e) {
-            System.out.println("❌ Failed to create game: " + e.getMessage());
+            System.out.println("❌ Failed to create game. " + e.getMessage());
         }
     }
 
@@ -178,7 +178,7 @@ public class ClientMain {
             System.out.println("✅ Logged out.");
             return true;
         } catch (Exception e) {
-            System.out.println("❌ Logout failed: " + e.getMessage());
+            System.out.println("❌ Logout failed. " + e.getMessage());
             return false;
         }
     }

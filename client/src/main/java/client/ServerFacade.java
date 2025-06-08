@@ -47,7 +47,9 @@ public class ServerFacade {
         }
 
         var requestBody = gson.toJson(new JoinGameRequest(gameID, playerColor));
-        System.out.println("▶️ Sending join request as player: " + requestBody);
+        //old - for debug
+        //System.out.println("▶️ Sending join request as player: " + requestBody);
+        System.out.println("▶️ Loading game");
         makeRequestWithAuth("/game", "PUT", requestBody, authToken);
 
         drawBoard(playerColor); // ✅ Print the board after joining
@@ -159,7 +161,21 @@ public class ServerFacade {
             }
 
             if (responseCode >= 400) {
-                throw new IOException("Server returned error: " + responseBuilder);
+                // Extract message from JSON
+                String errorJson = responseBuilder.toString();
+                String userMessage = errorJson;
+
+                try {
+                    // Parse the JSON and extract the message
+                    Map<?, ?> errorMap = new Gson().fromJson(errorJson, Map.class);
+                    if (errorMap.containsKey("message")) {
+                        userMessage = (String) errorMap.get("message");
+                    }
+                } catch (Exception e) {
+                    // If parsing fails, keep raw response
+                }
+
+                throw new IOException(userMessage);
             }
 
             return responseBuilder.toString();
