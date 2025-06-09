@@ -2,14 +2,17 @@ import chess.*;
 import client.ServerFacade;
 import client.AuthResponse;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class ClientMain {
-
+    private static Map<Integer, Integer> clientToServerGameIdMap = new HashMap<>();
     public static void main(String[] args) {
         ServerFacade server = new ServerFacade("localhost", 8080);
         String authToken = null;
         boolean loggedIn = false;
+
 
         Scanner scanner = new Scanner(System.in);
         System.out.println("\u2655 Welcome to 240 Chess Client");
@@ -120,45 +123,66 @@ public class ClientMain {
                 System.out.println("📝 No games available.");
                 return;
             }
+
             System.out.println("🎮 Available Games:");
+            clientToServerGameIdMap.clear();  // Reset mapping before updating
+            int displayId = 1;
             for (var game : response.games) {
+                clientToServerGameIdMap.put(displayId, game.gameID);
                 System.out.printf("  [game ID: %d] \"%s\" | White: %s | Black: %s%n",
-                        game.gameID,
+                        displayId,
                         game.gameName,
                         game.whiteUsername != null ? game.whiteUsername : "(empty)",
                         game.blackUsername != null ? game.blackUsername : "(empty)");
+                displayId++;
             }
         } catch (Exception e) {
             System.out.println("❌ Failed to list games. " + e.getMessage());
         }
     }
 
+
     private static void handlePlay(Scanner scanner, ServerFacade server, String authToken) {
         try {
             System.out.print("Enter Game ID: ");
-            int gameID = Integer.parseInt(scanner.nextLine());
+            int clientGameId = Integer.parseInt(scanner.nextLine());
+
+            Integer realGameId = clientToServerGameIdMap.get(clientGameId);
+            if (realGameId == null) {
+                System.out.println("❌ Invalid game ID. Use 'list' to see available games.");
+                return;
+            }
+
             System.out.print("Choose color (WHITE or BLACK): ");
             String color = scanner.nextLine().trim().toUpperCase();
 
-            server.joinGame(authToken, gameID, color);
-            System.out.println("✅ Joined game " + gameID + " as " + color);
+            server.joinGame(authToken, realGameId, color);
+            System.out.println("✅ Joined game " + clientGameId + " as " + color);
         } catch (Exception e) {
             System.out.println("❌ Failed to join game. " + e.getMessage());
         }
     }
 
+
     private static void handleObserve(Scanner scanner, ServerFacade server, String authToken) {
         try {
             System.out.print("Enter Game ID: ");
-            int gameID = Integer.parseInt(scanner.nextLine());
+            int clientGameId = Integer.parseInt(scanner.nextLine());
 
-            server.observeGame(authToken, gameID);
-            System.out.println("👁️ Now observing game " + gameID);
-            runGameREPL(scanner, server, authToken, gameID, false);
+            Integer realGameId = clientToServerGameIdMap.get(clientGameId);
+            if (realGameId == null) {
+                System.out.println("❌ Invalid game ID. Use 'list' to see available games.");
+                return;
+            }
+
+            server.observeGame(authToken, realGameId);
+            System.out.println("👁️ Now observing game " + clientGameId);
+            runGameREPL(scanner, server, authToken, realGameId, false);
         } catch (Exception e) {
             System.out.println("❌ Failed to observe game. " + e.getMessage());
         }
     }
+
 
     private static void handleCreate(Scanner scanner, ServerFacade server, String authToken) {
         try {
