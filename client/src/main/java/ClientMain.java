@@ -159,7 +159,7 @@ public class ClientMain {
             server.joinGame(authToken, realGameId, color);
             System.out.println("✅ Joined game " + clientGameId + " as " + color);
         } catch (Exception e) {
-            System.out.println("❌ Failed to join game. " + e.getMessage());
+            System.out.println("❌ Failed to join game. Please enter an existing gameID.");
         }
     }
 
@@ -179,7 +179,7 @@ public class ClientMain {
             System.out.println("👁️ Now observing game " + clientGameId);
             runGameREPL(scanner, server, authToken, realGameId, false);
         } catch (Exception e) {
-            System.out.println("❌ Failed to observe game. " + e.getMessage());
+            System.out.println("❌ Failed to observe game. Please enter an existing gameID.");
         }
     }
 

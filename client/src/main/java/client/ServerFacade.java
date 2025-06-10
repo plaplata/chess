@@ -57,7 +57,8 @@ public class ServerFacade {
 
     public void observeGame(String authToken, int gameID) throws IOException {
         var requestBody = gson.toJson(new JoinGameRequest(gameID, "OBSERVER"));
-        System.out.println("👁️ Sending join request as observer: " + requestBody);
+        //System.out.println("👁️ Sending join request as observer: " + requestBody);
+        System.out.println("Loading game for observer 👁️");
         makeRequestWithAuth("/game", "PUT", requestBody, authToken);
 
         drawBoard("WHITE"); // ✅ Print the board after observing
