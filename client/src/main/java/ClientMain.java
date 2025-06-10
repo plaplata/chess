@@ -190,11 +190,17 @@ public class ClientMain {
             String gameName = scanner.nextLine();
 
             var response = server.createGame(authToken, gameName);
-            System.out.println("✅ Game '" + gameName + "' created with ID: " + response.gameID);
+
+            // Manually assign the next client-facing game ID
+            int nextClientID = clientToServerGameIdMap.size() + 1;
+            clientToServerGameIdMap.put(nextClientID, response.gameID);
+
+            System.out.println("✅ Game '" + gameName + "' created with ID: " + nextClientID);
         } catch (Exception e) {
             System.out.println("❌ Failed to create game. " + e.getMessage());
         }
     }
+
 
     private static boolean handleLogout(ServerFacade server, String authToken) {
         try {
