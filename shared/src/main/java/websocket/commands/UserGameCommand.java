@@ -16,6 +16,18 @@ public class UserGameCommand {
 
     private final Integer gameID;
 
+    private String move;
+
+    public void setMove(String move) {
+        this.move = move;
+    }
+
+    public String getMove() {
+        return move;
+    }
+
+
+
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
         this.commandType = commandType;
         this.authToken = authToken;

@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 public class ClientMain {
     private static Map<Integer, Integer> clientToServerGameIdMap = new HashMap<>();
+
     public static void main(String[] args) {
         ServerFacade server = new ServerFacade("localhost", 8080);
         String authToken = null;
@@ -74,12 +75,12 @@ public class ClientMain {
 
     private static void printPreloginHelp() {
         System.out.println("""
-        Available commands (Prelogin):
-          help     - Display this help message
-          register - Create a new account
-          login    - Log in with your username and password
-          quit     - Exit the program
-    """);
+                    Available commands (Prelogin):
+                      help     - Display this help message
+                      register - Create a new account
+                      login    - Log in with your username and password
+                      quit     - Exit the program
+                """);
     }
 
     private static String runPostLoginREPL(Scanner scanner, ServerFacade server, String authToken) {
@@ -95,7 +96,7 @@ public class ClientMain {
                 case "observe" -> handleObserve(scanner, server, authToken);
                 case "create" -> handleCreate(scanner, server, authToken);
                 case "logout" -> {
-                    if (handleLogout(server, authToken)){
+                    if (handleLogout(server, authToken)) {
                         return null;
                     }
                 }
@@ -107,14 +108,14 @@ public class ClientMain {
 
     private static void printPostloginHelp() {
         System.out.println("""
-        Available commands (Postlogin):
-          help     - Show this help message
-          create   - Create a new game
-          list     - View all available games
-          play     - Join a game as a player
-          observe  - Join a game as an observer
-          logout   - Log out and return to prelogin menu
-    """);
+                    Available commands (Postlogin):
+                      help     - Show this help message
+                      create   - Create a new game
+                      list     - View all available games
+                      play     - Join a game as a player
+                      observe  - Join a game as an observer
+                      logout   - Log out and return to prelogin menu
+                """);
     }
 
     private static void handleListGames(ServerFacade server, String authToken) {
@@ -235,31 +236,35 @@ public class ClientMain {
             if (input.equals("help")) {
                 if (isPlayer) {
                     System.out.println("""
-                Game Commands (Player):
-                  help   - Show this help message
-                  leave  - Leave the game and return to lobby
-                  move   - (not implemented)
-                """);
+                            Game Commands (Player):
+                              help   - Show this help message
+                              leave  - Leave the game and return to lobby
+                              move   - (not implemented)
+                            """);
                 } else {
                     System.out.println("""
-                Game Commands (Observer):
-                  help   - Show this help message
-                  leave  - Stop observing and return to lobby
-                """);
+                            Game Commands (Observer):
+                              help   - Show this help message
+                              leave  - Stop observing and return to lobby
+                            """);
                 }
             } else if (input.equals("leave")) {
                 System.out.println("🚪 Leaving game " + gameID + "...");
                 inGame = false;
-            } else if (input.equals("move")) {
+            } else if (input.startsWith("move")) {
                 if (!isPlayer) {
                     System.out.println("⚠️ Observers can't make moves.");
                 } else {
-                    System.out.println("⏳ Move functionality not implemented yet.");
+                    String[] tokens = input.split("\\s+");
+                    if (tokens.length != 3) {
+                        System.out.println("Usage: move <from> <to>  (e.g., move e2 e4)");
+                    } else {
+                        String moveStr = tokens[1] + " " + tokens[2];
+                        communicator.sendMakeMoveCommand(authToken, gameID, moveStr);
+                    }
                 }
-            } else {
-                System.out.println("Unknown command. Type 'help' for a list of commands.");
             }
+
         }
     }
-
 }

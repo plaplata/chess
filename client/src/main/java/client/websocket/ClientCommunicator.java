@@ -94,4 +94,21 @@ public class ClientCommunicator {
     public boolean isConnected() {
         return session != null && session.isOpen();
     }
+
+    public void sendMakeMoveCommand(String authToken, int gameID, String moveStr) {
+        if (session != null && session.isOpen()) {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID);
+            command.setMove(moveStr);
+            String json = gson.toJson(command);
+            try {
+                session.getBasicRemote().sendText(json);
+                System.out.println("📤 Sent MAKE_MOVE command: " + json);
+            } catch (IOException e) {
+                System.err.println("❌ Failed to send MAKE_MOVE command: " + e.getMessage());
+            }
+        } else {
+            System.err.println("❌ Cannot send MAKE_MOVE — session not open.");
+        }
+    }
+
 }
