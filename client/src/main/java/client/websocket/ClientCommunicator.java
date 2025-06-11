@@ -1,13 +1,18 @@
 package client.websocket;
 
+import com.google.gson.Gson;
+import websocket.commands.UserGameCommand;
+
 import javax.websocket.*;
+import java.io.IOException;
 import java.net.URI;
 
 @ClientEndpoint
 public class ClientCommunicator {
 
     private Session session;
-    private String serverUri = "ws://localhost:8080/connect";
+    private final String serverUri = "ws://localhost:8080/connect";
+    private final Gson gson = new Gson();
 
     public void connect() {
         try {
@@ -15,6 +20,21 @@ public class ClientCommunicator {
             container.connectToServer(this, URI.create(serverUri));
         } catch (Exception e) {
             System.err.println("WebSocket connection failed: " + e.getMessage());
+        }
+    }
+
+    public void sendConnectCommand(String authToken, int gameID) {
+        if (session != null && session.isOpen()) {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+            String json = gson.toJson(command);
+            try {
+                session.getBasicRemote().sendText(json);
+                System.out.println("📤 Sent CONNECT command: " + json);
+            } catch (IOException e) {
+                System.err.println("❌ Failed to send CONNECT command: " + e.getMessage());
+            }
+        } else {
+            System.err.println("❌ Cannot send CONNECT — session is not open.");
         }
     }
 

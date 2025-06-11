@@ -1,6 +1,7 @@
 import chess.*;
 import client.ServerFacade;
 import client.AuthResponse;
+import client.websocket.ClientCommunicator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -160,7 +161,8 @@ public class ClientMain {
             System.out.println("✅ Joined game " + clientGameId + " as " + color);
 
             // ✅ Launch gameplay REPL for player
-            runGameREPL(scanner, server, authToken, realGameId, true);
+            ClientCommunicator communicator = new ClientCommunicator();
+            runGameREPL(scanner, server, authToken, realGameId, true, communicator);
         } catch (Exception e) {
             System.out.println("❌ Failed to join game. Please enter an existing gameID.");
         }
@@ -180,7 +182,10 @@ public class ClientMain {
 
             server.observeGame(authToken, realGameId);
             System.out.println("👁️ Now observing game " + clientGameId);
-            runGameREPL(scanner, server, authToken, realGameId, false);
+
+            //✅ Launch gameplay REPL for observer
+            ClientCommunicator communicator = new ClientCommunicator();
+            runGameREPL(scanner, server, authToken, realGameId, false, communicator);
         } catch (Exception e) {
             System.out.println("❌ Failed to observe game. Please enter an existing gameID.");
         }
@@ -216,8 +221,11 @@ public class ClientMain {
         }
     }
 
-    private static void runGameREPL(Scanner scanner, ServerFacade server, String authToken, int gameID, boolean isPlayer) {
+    private static void runGameREPL(Scanner scanner, ServerFacade server, String authToken, int gameID, boolean isPlayer, ClientCommunicator communicator) {
         System.out.println("🎯 Entered game " + gameID + (isPlayer ? " as a PLAYER" : " as an OBSERVER"));
+
+        communicator.connect();
+        communicator.sendConnectCommand(authToken, gameID);
 
         boolean inGame = true;
         while (inGame) {
@@ -227,17 +235,17 @@ public class ClientMain {
             if (input.equals("help")) {
                 if (isPlayer) {
                     System.out.println("""
-                    Game Commands (Player):
-                      help   - Show this help message
-                      leave  - Leave the game and return to lobby
-                      move   - (not implemented)
-                    """);
+                Game Commands (Player):
+                  help   - Show this help message
+                  leave  - Leave the game and return to lobby
+                  move   - (not implemented)
+                """);
                 } else {
                     System.out.println("""
-                    Game Commands (Observer):
-                      help   - Show this help message
-                      leave  - Stop observing and return to lobby
-                    """);
+                Game Commands (Observer):
+                  help   - Show this help message
+                  leave  - Stop observing and return to lobby
+                """);
                 }
             } else if (input.equals("leave")) {
                 System.out.println("🚪 Leaving game " + gameID + "...");
@@ -253,4 +261,5 @@ public class ClientMain {
             }
         }
     }
+
 }
