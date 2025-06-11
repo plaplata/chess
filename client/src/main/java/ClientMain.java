@@ -158,6 +158,9 @@ public class ClientMain {
 
             server.joinGame(authToken, realGameId, color);
             System.out.println("✅ Joined game " + clientGameId + " as " + color);
+
+            // ✅ Launch gameplay REPL for player
+            runGameREPL(scanner, server, authToken, realGameId, true);
         } catch (Exception e) {
             System.out.println("❌ Failed to join game. Please enter an existing gameID.");
         }
