@@ -263,8 +263,15 @@ public class ClientMain {
                         communicator.sendMakeMoveCommand(authToken, gameID, moveStr);
                     }
                 }
+            } else if (input.equals("resign")) {
+                if (!isPlayer) {
+                    System.out.println("⚠️ Observers cannot resign.");
+                } else {
+                    communicator.sendResignCommand(authToken, gameID);
+                    System.out.println("🏳️ You have resigned.");
+                    inGame = false;
+                }
             }
-
         }
     }
 }

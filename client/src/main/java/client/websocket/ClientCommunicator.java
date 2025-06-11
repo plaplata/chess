@@ -111,4 +111,20 @@ public class ClientCommunicator {
         }
     }
 
+    public void sendResignCommand(String authToken, int gameID) {
+        if (session != null && session.isOpen()) {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+            String json = gson.toJson(command);
+            try {
+                session.getBasicRemote().sendText(json);
+                System.out.println("📤 Sent RESIGN command: " + json);
+            } catch (IOException e) {
+                System.err.println("❌ Failed to send RESIGN command: " + e.getMessage());
+            }
+        } else {
+            System.err.println("❌ Cannot send RESIGN — session not open.");
+        }
+    }
+
+
 }
