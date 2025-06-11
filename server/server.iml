@@ -47,6 +47,16 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Maven: org.glassfish.tyrus:tyrus-server:1.15" level="project" />
+    <orderEntry type="library" name="Maven: jakarta.websocket:jakarta.websocket-api:1.1.1" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.tyrus:tyrus-client:1.15" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.tyrus:tyrus-core:1.15" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.tyrus:tyrus-spi:1.15" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.tyrus:tyrus-container-grizzly-client:1.15" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.tyrus:tyrus-container-grizzly-server:1.15" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.grizzly:grizzly-framework:2.4.4" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.grizzly:grizzly-http-server:2.4.4" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.grizzly:grizzly-http:2.4.4" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.10.1" level="project" />
     <orderEntry type="library" name="Maven: org.junit.jupiter:junit-jupiter:5.9.2" level="project" />
     <orderEntry type="library" name="Maven: org.junit.jupiter:junit-jupiter-api:5.9.2" level="project" />

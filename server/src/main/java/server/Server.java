@@ -13,14 +13,14 @@ public class Server {
 
     public static void main(String[] args) {
         Server server = new Server();
-        server.run(4567);
+        server.run(4567, true); // WebSocket enabled in CLI launch
     }
 
-    public int run(int desiredPort) {
+    // ✅ Updated method signature to accept WebSocket toggle
+    public int run(int desiredPort, boolean enableWebSockets) {
         port(desiredPort);
         staticFiles.location("/web");
 
-        //old - UserMemoryStorage users = new UserMemoryStorage();
         UserStorage users = new SQLUserStorage();
         try {
             DatabaseManager.createTablesIfNotExists();
@@ -30,14 +30,18 @@ public class Server {
         AuthStorage auths = new SQLAuthStorage();
         GameStorage games = new SQLGameStorage();
 
-        // Register services
         UserReg userReg = new UserReg(users, auths);
         UserLogin userLogin = new UserLogin(users, auths);
         UserLogout userLogout = new UserLogout(auths);
         ClearService clearService = new ClearService(users, auths, games);
         GameService gameService = new GameService(games, auths);
 
-        // Global auth filter (only apply to protected routes)
+        // ✅ Conditionally register WebSocket
+        if (enableWebSockets) {
+            webSocket("/connect", server.websocket.WebSocketHandler.class);
+        }
+
+        // Global auth filter
         before((request, response) -> {
             String path = request.pathInfo();
             String method = request.requestMethod();
@@ -64,26 +68,25 @@ public class Server {
         delete("/session", userLogout::logout);
         delete("/db", (req, res) -> clearService.clearAll(req, res));
 
-        // Game-related routes
         post("/game", gameService::createGame);
         get("/game", gameService::listGames);
-        //old line
         put("/game", gameService::joinGame);
-        //newer line - breaks APITests
-        //put("/game/join", gameService::joinGame);
 
-        // Error handler
         exception(Exception.class, (e, req, res) -> {
             res.status(500);
             res.type("application/json");
             res.body("{\"message\": \"Error: " + e.getMessage().replace("\"", "\\\"") + "\"}");
         });
 
-
         init();
         awaitInitialization();
 
         return port();
+    }
+
+    // Default run for test compatibility
+    public int run(int desiredPort) {
+        return run(desiredPort, false); // WebSocket disabled by default
     }
 
     public void stop() {

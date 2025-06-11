@@ -14,7 +14,7 @@ import java.net.URI;
 public class ClientCommunicator {
 
     private Session session;
-    private final String serverUri = "ws://localhost:8080/connect";
+    private final String serverUri = "ws://localhost:8081/connect";
     private final Gson gson = new Gson();
 
     public void connect() {

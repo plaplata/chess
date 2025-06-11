@@ -103,9 +103,14 @@
             <scope>system</scope>
             <systemPath>${pom.basedir}/lib/passoff-dependencies.jar</systemPath>
         </dependency>
-        <dependency>Add commentMore actions
-            <groupId>org.glassfish.tyrus.bundles</groupId>
-            <artifactId>tyrus-standalone-client</artifactId>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-server</artifactId>
+            <version>1.15</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly-server</artifactId>
             <version>1.15</version>
         </dependency>
     </dependencies>
