@@ -17,6 +17,25 @@ public class ServerMessage {
     private String message;
     private String errorMessage;
 
+    public void setGame(ChessGame game) {
+        this.game = game;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+    }
+
+    public static ServerMessage error(String errorMessage) {
+        ServerMessage msg = new ServerMessage(ServerMessageType.ERROR);
+        msg.setErrorMessage(errorMessage);
+        return msg;
+    }
+
+
     public ChessGame getGame() {
         return game;
     }
