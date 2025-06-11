@@ -1,7 +1,10 @@
 package client.websocket;
 
+
+import chess.ChessGame;
 import com.google.gson.Gson;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -58,8 +61,27 @@ public class ClientCommunicator {
     @OnMessage
     public void onMessage(String message) {
         System.out.println("📩 Received message: " + message);
-        // Stub for later handling of ServerMessage
+
+        try {
+            ServerMessage serverMessage = gson.fromJson(message, ServerMessage.class);
+            switch (serverMessage.getServerMessageType()) {
+                case LOAD_GAME -> {
+                    System.out.println("♟️ Game state loaded.");
+                    ChessGame game = serverMessage.getGame();
+                    System.out.println(new client.ui.ChessBoardRenderer().render(game.getBoard(), game.getTeamTurn()));
+                }
+                case NOTIFICATION -> {
+                    System.out.println("🔔 Notification: " + serverMessage.getMessage());
+                }
+                case ERROR -> {
+                    System.out.println("❌ Error: " + serverMessage.getErrorMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to parse server message: " + e.getMessage());
+        }
     }
+
 
     public void disconnect() {
         try {
